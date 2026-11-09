@@ -1,13 +1,92 @@
 # L_Platform Web
 
-Private repository for the L_Platform admin and teacher portals. This repository is an engineering foundation; product screens and backend behavior are not included yet.
+Frontend for the L_Platform education platform. This repository currently contains the **admin portal** built against an in-browser mock data layer. It is a demonstration product: no backend service, database, real authentication, email delivery or payment integration is included.
 
-## Stack and local development
+> **Security note:** the `/admin` route guard is a frontend convenience boundary backed by a localStorage session and a cookie. It is **not** authentication or authorization. In production, the private backend must enforce every permission and organization-scope rule. See [SECURITY.md](SECURITY.md).
 
-The planned stack is Next.js App Router, React, strict TypeScript and pnpm. The repository is being initialized; see [repository audit](docs/repository-audit.md) for current readiness and [GitHub Actions](docs/github-actions.md) for checks and known prerequisites.
+## Stack
 
-Use short lived branches (`feature/*`, `fix/*`, `refactor/*`, `chore/*`, `docs/*`, `security/*`) and open a PR to `main`. Use Conventional Commits and squash merge. Do not commit secrets or `.env*` files.
+- Next.js 15 App Router, React 19, strict TypeScript
+- Tailwind CSS v4 with OKLCH design tokens and `next-themes` dark mode
+- shadcn/ui-style components on Radix primitives, Lucide icons, Sonner toasts
+- TanStack Query v5 for server-state hooks, TanStack Table v8 for data grids
+- Zod + React Hook Form for validation, Recharts for dashboard charts
+- Vitest + Testing Library for unit/integration tests, Playwright for end-to-end tests
+- pnpm 10.20.0 (pinned through `packageManager`)
 
-## Quality and security
+## Quick start
 
-Run `pnpm install --frozen-lockfile` and the checks provided by the project before opening a PR. CI is authoritative. Report security issues privately as described in [SECURITY.md](SECURITY.md).
+Requirements: Node.js per [.nvmrc](.nvmrc) (`24.22.1`) and Corepack.
+
+```bash
+corepack enable
+corepack prepare pnpm@10.20.0 --activate
+pnpm install --frozen-lockfile
+pnpm dev
+```
+
+Open <http://localhost:3000>. The app redirects to `/login`.
+
+### Demo accounts
+
+| Account                    | Email                        | Password       | Scope                   |
+| -------------------------- | ---------------------------- | -------------- | ----------------------- |
+| Platform administrator     | `admin@lplatform.dev`        | `Admin@123`    | Full admin portal       |
+| Organization administrator | `priya.sharma@riverside.edu` | `OrgAdmin@123` | Riverside Public School |
+
+These credentials are constants in the mock adapter and are never written to the mock database. They must be replaced by real authentication before any production use.
+
+## Scripts
+
+| Command                             | Purpose                                |
+| ----------------------------------- | -------------------------------------- |
+| `pnpm dev`                          | Start the development server           |
+| `pnpm build` / `pnpm start`         | Production build and server            |
+| `pnpm lint`                         | ESLint                                 |
+| `pnpm typecheck`                    | `tsc --noEmit`                         |
+| `pnpm test`                         | Vitest unit and integration suite      |
+| `pnpm test:coverage`                | Vitest with coverage                   |
+| `pnpm e2e`                          | Playwright suite (Chromium, port 3100) |
+| `pnpm format` / `pnpm format:check` | Prettier write / check                 |
+
+The first E2E run needs a browser: `pnpm exec playwright install chromium`.
+
+## Repository structure
+
+```text
+src/
+  app/                 App Router routes (login + /admin/*)
+  components/admin/    Portal shell, forms, tables, dialogs, charts
+  components/ui/       Design-system primitives
+  lib/api/             Service contracts, errors, pagination, mock latency
+  lib/mock/            Seed data, localStorage database, mock adapters, session
+  lib/hooks/           TanStack Query hooks
+  lib/validation/      Zod schemas shared by forms and mock services
+  lib/labels.ts        Human-readable status/role/audit labels
+  types/               Domain types
+e2e/                   Playwright specs
+docs/admin-portal/     Admin portal feature and architecture docs
+```
+
+## Documentation
+
+- [Admin portal overview](docs/admin-portal/overview.md)
+- [Organization management](docs/admin-portal/organization-management.md)
+- [User and administrator management](docs/admin-portal/user-management.md)
+- [Class and section management](docs/admin-portal/class-management.md)
+- [Course management](docs/admin-portal/course-management.md)
+- [Course allocation](docs/admin-portal/course-allocation.md)
+- [Mock services](docs/admin-portal/mock-services.md)
+- [Testing](docs/admin-portal/testing.md)
+- [Roadmap](ROADMAP.md) · [Changelog](CHANGELOG.md) · [Repository audit](docs/repository-audit.md)
+
+## Scope boundaries
+
+- The backend and application repositories are out of scope for this milestone.
+- Invitations are mock operations; no email is sent.
+- Settings are stored in browser storage only.
+- The teacher portal is planned, not implemented. See [ROADMAP.md](ROADMAP.md).
+
+## Contributing
+
+Use short-lived branches (`feature/*`, `fix/*`, `refactor/*`, `chore/*`, `docs/*`, `security/*`), Conventional Commits and a pull request to `main`. Run formatting, lint, typecheck, tests, build and end-to-end tests before opening a PR. CI is authoritative. Report security issues privately as described in [SECURITY.md](SECURITY.md).
