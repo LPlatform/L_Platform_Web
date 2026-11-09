@@ -18,7 +18,7 @@ jobs:
     environment: production
     steps:
       - name: Validate deployment prerequisites
-        env: { DIGEST: '${{ inputs.artifact_digest }}' }
+        env: { DIGEST: "${{ inputs.artifact_digest }}" }
         run: |
           [[ "$DIGEST" =~ ^[a-f0-9]{64}$ ]]
           echo 'No hosting provider, protected approval, build artifact store, or credentials are configured. Production deployment is not active.'
