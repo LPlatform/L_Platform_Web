@@ -1,5 +1,5 @@
 # Release process
 
-Use SemVer and `web-vMAJOR.MINOR.PATCH` tags. `main` is the only release source. Conventional Commit PR titles support release notes; squash merge is recommended. A release candidate must pass the complete PR checks before its tag is created. Never overwrite tags or reuse artifacts. Preserve prior releases.
+Use SemVer and `web-vMAJOR.MINOR.PATCH` tags from `main`. The tag workflow validates the format and main ancestry, runs format/lint/typecheck/tests/build, uploads the production `.next` artifact, then generates GitHub Release notes. It refuses to replace an existing GitHub Release. Tag update/deletion protection is not available on the current private-repo plan. `CHANGELOG.md` remains reviewed manually; release automation does not rewrite it.
 
-The web package and host are not configured yet. Establish one version of record in the eventual package manifest, and generate release notes from merged changes. Publish production only through a protected GitHub Environment after configuring a hosting target and credentials. Roll back by redeploying the prior immutable release artifact; no target is configured today.
+The package and host are not configured, so no release has been tested. Establish one version of record in the package manifest. Production deployment remains blocked until a provider, protected Environment reviewers and credentials exist. Roll back by redeploying a prior immutable build artifact.

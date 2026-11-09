@@ -10,6 +10,7 @@ test('web engineering and release policies are documented', () => {
   }
   assert.match(read('AGENTS.md'), /strict TypeScript/i);
   assert.match(read('docs/integration/api-contracts.md'), /pinned version/i);
+  assert.equal(read('.nvmrc').trim(), '24.22.1');
 });
 
 test('workflow actions use full commit SHAs', () => {
@@ -19,4 +20,13 @@ test('workflow actions use full commit SHAs', () => {
       assert.match(line, /@[a-f0-9]{40}(?:\s|$)/, `${file}: ${line.trim()}`);
     }
   }
+});
+
+test('product checks are separate from bootstrap smoke tests', () => {
+  const ci = read('.github/workflows/ci.yml');
+  assert.match(ci, /name: bootstrap-smoke/);
+  assert.match(ci, /name: web-product-ci/);
+  assert.match(ci, /if: needs\.readiness\.outputs\.product-configured == 'true'/);
+  assert.match(read('.github/workflows/release.yml'), /TAG: \$\{\{ github\.ref_name \}\}/);
+  assert.match(read('.github/workflows/release.yml'), /web-production-\$\{\{ github\.sha \}\}/);
 });
