@@ -1,0 +1,5 @@
+# GitHub Actions
+
+`ci.yml` has separate `bootstrap-smoke` and `web-product-ci` checks. The product job is visibly skipped until `package.json` exists; after that it requires the frozen pnpm lockfile, format/lint/typecheck/test scripts and `next build`. Dependency caching is enabled only in that initialized product job. `security.yml` and dependency review are visibly skipped for this private repository under the current plan. Dependabot is scheduled weekly. `release.yml` validates `web-vX.Y.Z`, tests/builds, uploads `.next`, then creates a release with generated notes. External Actions are SHA-pinned and permissions are scoped.
+
+The current run proves only the two bootstrap policy smoke tests. It did not run product tests or a production build. Reusable workflow cache logic has been added but remains unexecuted until a pnpm lockfile exists. Private CodeQL/dependency-review support requires an eligible GitHub Code Security plan. No `actionlint` run has been performed. Release-note generation is separate from the manually reviewed `CHANGELOG.md`.
