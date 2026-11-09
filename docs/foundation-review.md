@@ -21,4 +21,4 @@ GitHub-generated release notes are enabled. `CHANGELOG.md` is maintained through
 
 Staging/production Environments and host are absent. The owner must select a host, create Environments, set production reviewers and allowed deployment refs, then add credentials to the Environment. No secrets are embedded here.
 
-Latest workflow outcomes for the reviewed head are available on [PR #1](https://github.com/LPlatform/L_Platform_Web/pull/1). Reruns caused by this review commit must be used for final verification; earlier PR successes predate these changes.
+Verified PR head `5499a4b`: `bootstrap-smoke` passed; `web-product-ci`, CodeQL and dependency review were explicitly skipped. The PR status is clean. No product build/test is claimed. The report-only follow-up commit also reruns bootstrap CI.
