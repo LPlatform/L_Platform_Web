@@ -1,0 +1,21 @@
+name: Prepare Production Deployment
+on:
+  workflow_dispatch:
+    inputs:
+      artifact_digest:
+        description: Immutable verified build artifact SHA-256
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  readiness:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Validate deployment prerequisites
+        env: { DIGEST: '${{ inputs.artifact_digest }}' }
+        run: |
+          [[ "$DIGEST" =~ ^[a-f0-9]{64}$ ]]
+          echo 'No hosting provider, protected approval, build artifact store, or credentials are configured. Production deployment is not active.'
+          exit 1

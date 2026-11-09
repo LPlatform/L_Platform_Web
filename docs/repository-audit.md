@@ -12,4 +12,4 @@ Audit date: 2026-11-09. Source: authenticated GitHub API and the initial local c
 | Actions / tests / ignored files / release config | None existed at audit time. |
 | README | None existed at audit time. |
 
-No source or useful configuration was present to preserve. This PR adds governance and workflow foundations only. The Next.js app, package scripts, lockfile, test suite, deploy host and release credentials remain unconfigured; workflows disclose these gaps rather than report absent checks as passed.
+No source or useful configuration was present to preserve. This PR adds governance and workflow foundations plus repository-policy smoke tests only. The Next.js app, package scripts, lockfile, product tests, deploy host and release credentials remain unconfigured; workflows disclose these gaps rather than report absent checks as passed.
