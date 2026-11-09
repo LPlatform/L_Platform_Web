@@ -53,10 +53,33 @@ jobs:
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
       - name: Install pnpm
-        run: corepack enable && corepack prepare pnpm@11.25.0 --activate
+        run: corepack enable && corepack prepare pnpm@10.20.0 --activate
       - run: pnpm install --frozen-lockfile
       - run: pnpm format:check
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build
+
+  web-e2e:
+    name: web-e2e
+    needs: product-ci
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - name: Install pnpm
+        run: corepack enable && corepack prepare pnpm@10.20.0 --activate
+      - run: pnpm install --frozen-lockfile
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm build
+      - name: Run Playwright end-to-end tests
+        run: pnpm e2e
+        env:
+          CI: "true"
+          PLAYWRIGHT_WEB_SERVER_COMMAND: pnpm start
