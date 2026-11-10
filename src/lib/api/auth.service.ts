@@ -32,6 +32,12 @@ export const DEMO_ACCOUNTS: DemoAccount[] = [
     label: "Organization administrator",
     description: "Access simulated for Riverside Public School administration.",
   },
+  {
+    email: "teacher@riverside.edu",
+    password: "Teacher@123",
+    label: "Teacher",
+    description: "Access classroom sections, question bank, assignments and submission reviews.",
+  },
 ];
 
 function matchesDemoAccount(email: string, password: string): DemoAccount | undefined {

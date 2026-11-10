@@ -78,7 +78,17 @@ docs/admin-portal/     Admin portal feature and architecture docs
 - [Course allocation](docs/admin-portal/course-allocation.md)
 - [Mock services](docs/admin-portal/mock-services.md)
 - [Testing](docs/admin-portal/testing.md)
+- [Milestone 3 backend readiness audit](docs/integration/backend-readiness-audit.md)
 - [Roadmap](ROADMAP.md) · [Changelog](CHANGELOG.md) · [Repository audit](docs/repository-audit.md)
+
+## Backend integration status
+
+As of 2026-11-10, Web Milestone 1 PR #7 is merged, but Backend foundation PR #1 remains open
+and neither backend `main` nor the proposed foundation contains Milestone 2 application code,
+migrations, authentication, Admin APIs or an OpenAPI document. Milestone 3 integration is blocked;
+merging the backend foundation alone will not resolve the missing implementation. See the
+[readiness audit](docs/integration/backend-readiness-audit.md) for pinned evidence and conditions
+to resume. The Admin Portal runtime remains mock-only and is not production-ready.
 
 ## Scope boundaries
 

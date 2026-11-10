@@ -346,15 +346,16 @@ export function seedDatabase(): MockDatabase {
     const seed = ORG_SEEDS[orgIndex];
     const teacherIds: string[] = [];
     for (let teacherIndex = 0; teacherIndex < (seed?.teacherCount ?? 3); teacherIndex += 1) {
-      const first = pick(random, FIRST_NAMES);
-      const last = pick(random, LAST_NAMES);
+      const isDemoTeacher = orgIndex === 0 && teacherIndex === 0;
+      const first = isDemoTeacher ? "Marcus" : pick(random, FIRST_NAMES);
+      const last = isDemoTeacher ? "Brody" : pick(random, LAST_NAMES);
       const createdAt = monthsAgo(randomInt(random, 1, 8), randomInt(random, 2, 27), now);
       const teacher: User = {
         id: id(),
         publicId: nextPublicUser(),
         firstName: first,
         lastName: last,
-        email: uniqueEmail(first, last, emailDomain),
+        email: isDemoTeacher ? "teacher@riverside.edu" : uniqueEmail(first, last, emailDomain),
         username: null,
         role: "TEACHER",
         organizationId: organization.id,

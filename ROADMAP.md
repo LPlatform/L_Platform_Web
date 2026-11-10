@@ -17,6 +17,14 @@ repository yet.
 - Mock service layer with persisted fixtures, latency/failure simulation and audit capture
 - Unit, integration and Playwright end-to-end tests; CI runs all checks
 
+## Blocked — Milestone 3: Real backend integration
+
+The 2026-11-10 [readiness audit](docs/integration/backend-readiness-audit.md) confirms Web PR #7
+is merged. Backend foundation PR #1 is still open, backend `main` is empty, and the proposed
+foundation contains no Milestone 2 runtime, migrations, authentication, Admin APIs or OpenAPI.
+Integration has not started; the Web runtime remains mock-only. Backend foundation approval plus
+an implemented, merged and verifiable Milestone 2 are required before this work can resume.
+
 ## Planned — future milestones
 
 These items require decisions and repositories outside this frontend milestone. They are recorded

@@ -68,10 +68,15 @@ function LoginForm() {
   async function onSubmit(values: LoginFormValues) {
     setFormError(null);
     try {
-      await authService.login(values.email, values.password);
-      toast.success("Signed in to the admin portal.");
+      const session = await authService.login(values.email, values.password);
+      toast.success("Signed in successfully.");
       const requested = searchParams.get("next");
-      const destination = requested?.startsWith("/admin") ? requested : "/admin/dashboard";
+      let destination = "/admin/dashboard";
+      if (session.role === "TEACHER") {
+        destination = requested?.startsWith("/teacher") ? requested : "/teacher/dashboard";
+      } else {
+        destination = requested?.startsWith("/admin") ? requested : "/admin/dashboard";
+      }
       router.replace(destination);
       router.refresh();
     } catch (error) {
