@@ -2,6 +2,7 @@
 
 import { Eye } from "lucide-react";
 import * as React from "react";
+import { backendRequest } from "@/lib/api/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,8 +28,8 @@ interface SubmissionItem {
   studentEmail: string;
   questionTitle: string;
   language: string;
-  status: "PASS" | "FAIL" | "TIMEOUT" | "RUNTIME_ERROR";
-  score: number;
+  status: string;
+  score: number | null;
   submittedAt: string;
   code: string;
   testCasesPassed: number;
@@ -38,55 +39,26 @@ interface SubmissionItem {
 export default function TeacherSubmissionsPage() {
   const [selectedSub, setSelectedSub] = React.useState<SubmissionItem | null>(null);
 
-  const submissions: SubmissionItem[] = [
-    {
-      id: "sub-001",
-      studentName: "Alice Walker",
-      studentEmail: "student1@riverside.edu",
-      questionTitle: "Sum of Two Integers",
-      language: "PYTHON",
-      status: "PASS",
-      score: 100,
-      testCasesPassed: 4,
-      totalTestCases: 4,
-      submittedAt: "10 minutes ago",
-      code: `import sys\n\ndef main():\n    line = sys.stdin.read().strip()\n    if line:\n        a, b = map(int, line.split())\n        print(a + b)\n\nif __name__ == '__main__':\n    main()`,
-    },
-    {
-      id: "sub-002",
-      studentName: "Bob Smith",
-      studentEmail: "student2@riverside.edu",
-      questionTitle: "Find Maximum Element",
-      language: "PYTHON",
-      status: "FAIL",
-      score: 50,
-      testCasesPassed: 1,
-      totalTestCases: 2,
-      submittedAt: "1 hour ago",
-      code: `import sys\n\ndef main():\n    lines = sys.stdin.read().strip().split('\\n')\n    # Incomplete logic for negative numbers\n    nums = list(map(int, lines[1].split()))\n    print(max(0, max(nums)))\n\nif __name__ == '__main__':\n    main()`,
-    },
-    {
-      id: "sub-003",
-      studentName: "Charlie Davis",
-      studentEmail: "charlie@riverside.edu",
-      questionTitle: "Sum of Two Integers",
-      language: "CPP",
-      status: "PASS",
-      score: 100,
-      testCasesPassed: 4,
-      totalTestCases: 4,
-      submittedAt: "3 hours ago",
-      code: `#include <iostream>\nusing namespace std;\n\nint main() {\n    long long a, b;\n    if (cin >> a >> b) {\n        cout << a + b << endl;\n    }\n    return 0;\n}`,
-    },
-  ];
+  const [submissions, setSubmissions] = React.useState<SubmissionItem[]>([]);
+  const [error, setError] = React.useState<string | null>(null);
+  React.useEffect(() => {
+    backendRequest<{ items: Array<Record<string, unknown>> }>("/api/submissions?page=1&pageSize=100")
+      .then(({ items }) => setSubmissions((items ?? []).map((item) => ({
+        id: String(item.id), studentName: String(item.studentName ?? "Unknown"), studentEmail: String(item.studentEmail ?? ""),
+        questionTitle: String(item.questionTitle ?? "Unknown question"), language: String(item.language ?? ""),
+        status: String(item.status ?? "PENDING"), score: typeof item.score === "number" ? item.score : null,
+        submittedAt: item.submittedAt ? new Date(String(item.submittedAt)).toLocaleString() : "—",
+        code: String(item.code ?? ""), testCasesPassed: Number(item.passedTestCases ?? 0), totalTestCases: Number(item.totalTestCases ?? 0),
+      }))))
+      .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : "Could not load submissions"));
+  }, []);
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Submission Review</h2>
         <p className="text-muted-foreground text-sm">
-          Inspect student code submissions, review automated evaluation scores, and verify test case
-          pass rates.
+          Review submitted source code. Evaluation remains pending until an isolated execution worker is available.
         </p>
       </div>
 
@@ -96,6 +68,8 @@ export default function TeacherSubmissionsPage() {
           <CardDescription>Filtered to your assigned sections and assignments</CardDescription>
         </CardHeader>
         <CardContent>
+          {error && <p role="alert" className="mb-4 text-sm text-destructive">Could not load submissions: {error}</p>}
+          {!error && submissions.length === 0 && <p className="mb-4 text-sm text-muted-foreground">No submissions are available yet.</p>}
           <Table>
             <TableHeader>
               <TableRow>
@@ -119,13 +93,13 @@ export default function TeacherSubmissionsPage() {
                   <TableCell className="font-mono text-xs">{sub.language}</TableCell>
                   <TableCell>
                     <Badge
-                      variant={sub.status === "PASS" ? "default" : "destructive"}
-                      className={sub.status === "PASS" ? "bg-emerald-600" : ""}
+                      variant={sub.status === "COMPLETED" ? "default" : "secondary"}
+                      className={sub.status === "COMPLETED" ? "bg-emerald-600" : ""}
                     >
-                      {sub.status} ({sub.testCasesPassed}/{sub.totalTestCases})
+                      {sub.status === "PENDING" ? "PENDING • NOT EVALUATED" : sub.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="font-semibold">{sub.score}%</TableCell>
+                  <TableCell className="font-semibold">{sub.score == null ? "Pending" : `${sub.score}%`}</TableCell>
                   <TableCell className="text-muted-foreground text-xs">{sub.submittedAt}</TableCell>
                   <TableCell className="text-right">
                     <Button variant="outline" size="sm" onClick={() => setSelectedSub(sub)}>
@@ -146,10 +120,10 @@ export default function TeacherSubmissionsPage() {
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>
-                {selectedSub.studentName} — {selectedSub.questionTitle}
+                {selectedSub.studentName} â€” {selectedSub.questionTitle}
               </DialogTitle>
               <DialogDescription>
-                {selectedSub.language} · Score: {selectedSub.score}% ({selectedSub.testCasesPassed}/
+                {selectedSub.language} Â· Score: {selectedSub.score}% ({selectedSub.testCasesPassed}/
                 {selectedSub.totalTestCases} test cases passed)
               </DialogDescription>
             </DialogHeader>

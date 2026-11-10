@@ -151,8 +151,8 @@ function LoginForm() {
         </div>
 
         <p className="text-sidebar-muted/80 relative text-xs leading-relaxed">
-          Frontend demonstration for Milestone 1. All data is simulated in your browser and no real
-          accounts, emails or payments are created.
+          Local development portal connected to the L_Platform Backend and persistent PostgreSQL
+          database. Demo accounts are for local testing only.
         </p>
       </aside>
 

@@ -4,6 +4,7 @@ import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
+import { backendRequest } from "@/lib/api/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -55,14 +56,27 @@ export default function NewQuestionPage() {
     setTestCases(updated);
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  const [saving, setSaving] = React.useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!title || !description) {
       toast.error("Please enter a title and problem description");
       return;
     }
-    toast.success("Question created with test cases!");
-    router.push("/teacher/questions");
+    setSaving(true);
+    try {
+      await backendRequest("/api/questions", {
+        method: "POST",
+        body: JSON.stringify({ title, description, inputFormat, outputFormat, constraints, topic, difficulty, marks: Number(marks), status: "PUBLISHED", testCases }),
+      });
+      toast.success("Question and test cases saved to the Backend.");
+      router.push("/teacher/questions");
+    } catch (cause) {
+      toast.error(cause instanceof Error ? cause.message : "The Backend did not save the question.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -280,8 +294,8 @@ export default function NewQuestionPage() {
           <Button asChild variant="outline">
             <Link href="/teacher/questions">Cancel</Link>
           </Button>
-          <Button type="submit" className="bg-emerald-600 text-white hover:bg-emerald-700">
-            Save Question
+          <Button type="submit" disabled={saving} className="bg-emerald-600 text-white hover:bg-emerald-700">
+            {saving ? "Saving…" : "Save Question"}
           </Button>
         </div>
       </form>

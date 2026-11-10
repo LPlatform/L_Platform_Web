@@ -1,4 +1,3 @@
-import { getDb } from "../mock/db";
 import {
   clearSession,
   clearSessionCookie,
@@ -7,7 +6,6 @@ import {
   writeSession,
   type MockSession,
 } from "../mock/session";
-import { mockRequest } from "./delay";
 import { ApiError, ERROR_CODES } from "./errors";
 
 export interface DemoAccount {
@@ -17,70 +15,61 @@ export interface DemoAccount {
   description: string;
 }
 
-// Development-only credentials. They are constants in the mock adapter and are never stored
-// in the mock database. Real authentication is owned by the private backend.
+// Local development accounts seeded by the Backend. Never use these credentials outside this
+// local development environment.
 export const DEMO_ACCOUNTS: DemoAccount[] = [
   {
     email: "admin@lplatform.dev",
     password: "Admin@123",
     label: "Platform administrator",
-    description: "Full access to organizations, users, courses and platform settings.",
+    description: "Local development platform administrator.",
   },
   {
     email: "priya.sharma@riverside.edu",
     password: "OrgAdmin@123",
     label: "Organization administrator",
-    description: "Access simulated for Riverside Public School administration.",
+    description: "Local development organization administrator.",
   },
   {
     email: "teacher@riverside.edu",
     password: "Teacher@123",
     label: "Teacher",
-    description: "Access classroom sections, question bank, assignments and submission reviews.",
+    description: "Local development teacher account.",
   },
 ];
 
-function matchesDemoAccount(email: string, password: string): DemoAccount | undefined {
-  return DEMO_ACCOUNTS.find(
-    (account) =>
-      account.email.toLowerCase() === email.toLowerCase() && account.password === password,
-  );
-}
-
 export const authService = {
   async login(email: string, password: string): Promise<MockSession> {
-    return mockRequest("signing in", () => {
-      const account = matchesDemoAccount(email, password);
-      if (!account) {
-        throw new ApiError(ERROR_CODES.UNAUTHORIZED, "Invalid email address or password.", {
-          status: 401,
-        });
-      }
-      const db = getDb();
-      const user = db.users.find(
-        (item) => item.email?.toLowerCase() === account.email.toLowerCase(),
-      );
-      if (!user || user.status !== "ACTIVE") {
-        throw new ApiError(ERROR_CODES.UNAUTHORIZED, "This account is not active.", {
-          status: 401,
-        });
-      }
-      const session: MockSession = {
-        userId: user.id,
-        name: `${user.firstName} ${user.lastName}`,
-        email: user.email ?? account.email,
-        role: user.role,
-        organizationId: user.organizationId,
-        issuedAt: new Date().toISOString(),
-      };
-      writeSession(session);
-      setSessionCookie();
-      return session;
+    const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+    const response = await fetch(`${base}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ email, password }),
     });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new ApiError(ERROR_CODES.UNAUTHORIZED, payload.message || "Sign in failed.", {
+        status: response.status,
+      });
+    }
+    const user = payload.user;
+    const session: MockSession = {
+      userId: user.id,
+      name: user.name || `${user.firstName} ${user.lastName}`,
+      email: user.email,
+      role: user.role,
+      organizationId: user.organizationId,
+      issuedAt: new Date().toISOString(),
+    };
+    writeSession(session);
+    setSessionCookie();
+    return session;
   },
 
   async logout(): Promise<void> {
-    await mockRequest("signing out", () => undefined);
+    const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+    await fetch(`${base}/api/auth/logout`, { method: "POST", credentials: "include" });
     clearSession();
     clearSessionCookie();
   },
@@ -88,18 +77,6 @@ export const authService = {
   getSession(): MockSession | null {
     const session = readSession();
     if (!session) return null;
-    const user = getDb().users.find((item) => item.id === session.userId);
-    if (!user || user.status !== "ACTIVE") {
-      clearSession();
-      clearSessionCookie();
-      return null;
-    }
-    return {
-      ...session,
-      name: `${user.firstName} ${user.lastName}`,
-      email: user.email ?? session.email,
-      role: user.role,
-      organizationId: user.organizationId,
-    };
+    return session;
   },
 };

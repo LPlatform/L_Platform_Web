@@ -3,6 +3,7 @@
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
+import { backendRequest } from "@/lib/api/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,38 +17,14 @@ import {
 } from "@/components/ui/table";
 
 export default function TeacherAssignmentsPage() {
-  const assignments = [
-    {
-      id: "asg-python-hw1",
-      title: "Homework 1 — Python Basics",
-      sectionName: "Section A · Grade 10",
-      totalMarks: 20,
-      questionCount: 2,
-      submissionCount: 18,
-      status: "PUBLISHED",
-      dueDate: "2026-11-24",
-    },
-    {
-      id: "asg-python-hw2",
-      title: "Lab 2 — Arithmetic & Loops",
-      sectionName: "Section B · Grade 10",
-      totalMarks: 30,
-      questionCount: 3,
-      submissionCount: 10,
-      status: "PUBLISHED",
-      dueDate: "2026-11-30",
-    },
-    {
-      id: "asg-python-hw3",
-      title: "Quiz 1 — Functions & Scope",
-      sectionName: "Section A · Grade 10",
-      totalMarks: 25,
-      questionCount: 2,
-      submissionCount: 0,
-      status: "DRAFT",
-      dueDate: "2026-12-05",
-    },
-  ];
+  type AssignmentRow = { id: string; title: string; sectionName: string; totalMarks: number; questionCount: number; submissionCount: number; status: string; dueDate: string };
+  const [assignments, setAssignments] = React.useState<AssignmentRow[]>([]);
+  const [error, setError] = React.useState<string | null>(null);
+  React.useEffect(() => {
+    backendRequest<{ items: AssignmentRow[] }>("/api/assignments?page=1&pageSize=100")
+      .then((result) => setAssignments(result.items ?? []))
+      .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : "Could not load assignments"));
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -75,6 +52,8 @@ export default function TeacherAssignmentsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {error && <p role="alert" className="mb-4 text-sm text-destructive">Could not load assignments: {error}</p>}
+          {!error && assignments.length === 0 && <p className="mb-4 text-sm text-muted-foreground">No assignments are available for your account yet.</p>}
           <Table>
             <TableHeader>
               <TableRow>

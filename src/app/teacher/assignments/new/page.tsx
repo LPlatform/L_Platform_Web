@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
+import { backendRequest } from "@/lib/api/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,19 +14,25 @@ import { Label } from "@/components/ui/label";
 export default function NewAssignmentPage() {
   const router = useRouter();
   const [title, setTitle] = React.useState("");
-  const [sectionId, setSectionId] = React.useState("sec-grade10a-001");
+  const [sectionId, setSectionId] = React.useState("");
   const [instructions, setInstructions] = React.useState("");
   const [dueDate, setDueDate] = React.useState("2026-11-25T23:59");
-  const [selectedQuestions, setSelectedQuestions] = React.useState<string[]>([
-    "qst-sum-001",
-    "qst-max-002",
-  ]);
+  type Option = { id: string; name?: string; className?: string; title?: string; difficulty?: string; marks?: number };
+  const [selectedQuestions, setSelectedQuestions] = React.useState<string[]>([]);
+  const [sections, setSections] = React.useState<Option[]>([]);
+  const [availableQuestions, setAvailableQuestions] = React.useState<Option[]>([]);
+  const [saving, setSaving] = React.useState(false);
 
-  const availableQuestions = [
-    { id: "qst-sum-001", title: "Sum of Two Integers", difficulty: "EASY", marks: 10 },
-    { id: "qst-max-002", title: "Find Maximum Element", difficulty: "EASY", marks: 10 },
-    { id: "qst-pal-003", title: "Valid Palindrome", difficulty: "MEDIUM", marks: 20 },
-  ];
+  React.useEffect(() => {
+    Promise.all([
+      backendRequest<{ items: Option[] }>("/api/sections?page=1&pageSize=100"),
+      backendRequest<{ items: Option[] }>("/api/questions?page=1&pageSize=100"),
+    ]).then(([sectionList, questionList]) => {
+      setSections(sectionList.items ?? []);
+      setSectionId(sectionList.items?.[0]?.id ?? "");
+      setAvailableQuestions(questionList.items ?? []);
+    }).catch((cause: unknown) => toast.error(cause instanceof Error ? cause.message : "Could not load Backend data."));
+  }, []);
 
   function toggleQuestion(id: string) {
     if (selectedQuestions.includes(id)) {
@@ -35,14 +42,30 @@ export default function NewAssignmentPage() {
     }
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!title || selectedQuestions.length === 0) {
       toast.error("Please provide an assignment title and select at least one question");
       return;
     }
-    toast.success("Assignment published successfully!");
-    router.push("/teacher/assignments");
+    if (!sectionId) {
+      toast.error("No section is available to this account.");
+      return;
+    }
+    setSaving(true);
+    try {
+      const created = await backendRequest<{ id: string }>("/api/assignments", {
+        method: "POST",
+        body: JSON.stringify({ title, sectionId, instructions, dueDate, questionIds: selectedQuestions, status: "DRAFT" }),
+      });
+      await backendRequest(`/api/assignments/${encodeURIComponent(created.id)}/publish`, { method: "PATCH" });
+      toast.success("Assignment saved and published by the Backend.");
+      router.push("/teacher/assignments");
+    } catch (cause) {
+      toast.error(cause instanceof Error ? cause.message : "The Backend did not publish the assignment.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -90,8 +113,7 @@ export default function NewAssignmentPage() {
                   value={sectionId}
                   onChange={(e) => setSectionId(e.target.value)}
                 >
-                  <option value="sec-grade10a-001">Grade 10 · Section A</option>
-                  <option value="sec-grade10b-002">Grade 10 · Section B</option>
+                  {sections.map((section) => <option key={section.id} value={section.id}>{section.className ? `${section.className} · ` : ""}{section.name ?? section.id}</option>)}
                 </select>
               </div>
 
@@ -152,7 +174,7 @@ export default function NewAssignmentPage() {
                     <div>
                       <p className="text-sm font-medium">{q.title}</p>
                       <p className="text-muted-foreground text-xs">
-                        {q.difficulty} · {q.marks} points
+                        {q.difficulty} Â· {q.marks} points
                       </p>
                     </div>
                   </div>
@@ -167,8 +189,8 @@ export default function NewAssignmentPage() {
           <Button asChild variant="outline">
             <Link href="/teacher/assignments">Cancel</Link>
           </Button>
-          <Button type="submit" className="bg-emerald-600 text-white hover:bg-emerald-700">
-            Publish Assignment
+          <Button type="submit" disabled={saving} className="bg-emerald-600 text-white hover:bg-emerald-700">
+            {saving ? "Publishingâ€¦" : "Publish Assignment"}
           </Button>
         </div>
       </form>

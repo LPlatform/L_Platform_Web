@@ -3,6 +3,7 @@
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
+import { backendRequest } from "@/lib/api/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,47 +19,20 @@ import {
 
 export default function TeacherQuestionsPage() {
   const [search, setSearch] = React.useState("");
+  type QuestionRow = { id: string; title: string; topic?: string; difficulty?: string; supportedLanguages?: string[]; marks?: number; testCaseCount?: number };
+  const [questions, setQuestions] = React.useState<QuestionRow[]>([]);
+  const [error, setError] = React.useState<string | null>(null);
 
-  const questions = [
-    {
-      id: "qst-sum-001",
-      title: "Sum of Two Integers",
-      topic: "Basic Arithmetic",
-      difficulty: "EASY",
-      supportedLanguages: ["PYTHON", "JAVA", "CPP"],
-      marks: 10,
-      testCaseCount: 4,
-      sampleCases: 2,
-      hiddenCases: 2,
-    },
-    {
-      id: "qst-max-002",
-      title: "Find Maximum Element",
-      topic: "Arrays & Iteration",
-      difficulty: "EASY",
-      supportedLanguages: ["PYTHON", "JAVA", "CPP"],
-      marks: 10,
-      testCaseCount: 2,
-      sampleCases: 1,
-      hiddenCases: 1,
-    },
-    {
-      id: "qst-pal-003",
-      title: "Valid Palindrome",
-      topic: "Strings",
-      difficulty: "MEDIUM",
-      supportedLanguages: ["PYTHON", "JAVA", "CPP"],
-      marks: 20,
-      testCaseCount: 5,
-      sampleCases: 2,
-      hiddenCases: 3,
-    },
-  ];
+  React.useEffect(() => {
+    backendRequest<{ items: QuestionRow[] }>("/api/questions?page=1&pageSize=100")
+      .then((result) => setQuestions(result.items ?? []))
+      .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : "Could not load questions"));
+  }, []);
 
   const filtered = questions.filter(
     (q) =>
       q.title.toLowerCase().includes(search.toLowerCase()) ||
-      q.topic.toLowerCase().includes(search.toLowerCase()),
+      (q.topic ?? "").toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
@@ -96,6 +70,7 @@ export default function TeacherQuestionsPage() {
           </div>
         </CardHeader>
         <CardContent>
+          {error && <p role="alert" className="text-destructive mb-4 text-sm">{error}</p>}
           <Table>
             <TableHeader>
               <TableRow>
@@ -123,10 +98,10 @@ export default function TeacherQuestionsPage() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-muted-foreground text-xs">
-                    {q.supportedLanguages.join(", ")}
+                    {(q.supportedLanguages ?? []).join(", ")}
                   </TableCell>
                   <TableCell className="text-sm">
-                    {q.testCaseCount} ({q.sampleCases} sample, {q.hiddenCases} hidden)
+                    {q.testCaseCount ?? 0} test cases
                   </TableCell>
                   <TableCell className="font-medium">{q.marks} pts</TableCell>
                 </TableRow>

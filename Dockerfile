@@ -7,6 +7,8 @@ RUN corepack enable && corepack prepare pnpm@10.20.0 --activate
 WORKDIR /app
 
 FROM base AS builder
+ARG NEXT_PUBLIC_API_URL=http://localhost:3001
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 COPY . .
