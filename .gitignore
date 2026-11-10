@@ -5,6 +5,10 @@ dist/
 coverage/
 .turbo/
 .vercel/
+test-results/
+playwright-report/
+blob-report/
+*.tsbuildinfo
 .env
 .env.*
 !.env.example
