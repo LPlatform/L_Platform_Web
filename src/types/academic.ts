@@ -40,6 +40,7 @@ export interface ClassInput {
 export interface Section {
   id: string;
   publicId: string;
+  joinCode?: string;
   classId: string;
   organizationId: string;
   name: string;
@@ -51,6 +52,7 @@ export interface Section {
 
 export interface SectionWithStats extends Section {
   className: string;
+  academicYear?: string;
   organizationName: string;
   studentCount: number;
   teacherCount: number;
@@ -68,8 +70,12 @@ export interface SectionInput {
   description: string;
 }
 
+export type SectionRosterTeacher = UserWithOrganization & {
+  teacherRole?: "PRIMARY" | "CO_TEACHER";
+};
+
 export interface SectionRoster {
   students: UserWithOrganization[];
-  teachers: UserWithOrganization[];
+  teachers: SectionRosterTeacher[];
   capacity: number;
 }

@@ -264,7 +264,7 @@ export default function InvitationsPage() {
       <PageHeader
         eyebrow="Access requests"
         title="Invitations"
-        description="Invitations reserve a seat for an administrator, teacher or student. Sending, resending and revoking are mock operations — no email or message leaves the browser."
+        description="Invitations reserve a seat for an administrator, teacher or student. Records are stored in the backend; email delivery is not configured."
         actions={
           <>
             <Button variant="outline" onClick={() => void handleExport()} disabled={exporting}>
@@ -357,7 +357,7 @@ export default function InvitationsPage() {
 
       <p className="text-muted-foreground flex items-center gap-2 text-xs">
         <Mail className="size-3.5" aria-hidden />
-        Invitation delivery is simulated. The audit log records every invitation event.
+        Invitation records are stored in the backend. Email delivery is not configured.
       </p>
 
       <InvitationDialog
@@ -374,14 +374,14 @@ export default function InvitationsPage() {
         title="Resend invitation?"
         description={
           resendTarget
-            ? `A new 7-day window is applied for ${resendTarget.recipient}. No message is actually sent in this mock environment.`
+            ? `A new 7-day window is applied for ${resendTarget.recipient}. Email delivery is disabled in local mode.`
             : undefined
         }
         confirmLabel="Resend invitation"
         onConfirm={async () => {
           if (!resendTarget) return;
           await resendInvitation.mutateAsync(resendTarget.id);
-          toast.success("Invitation marked as resent. No email was sent.");
+          toast.success("Invitation expiry extended (local mode — email transport disabled).");
           setResendTarget(null);
         }}
       />

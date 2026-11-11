@@ -297,7 +297,7 @@ export default function OrganizationDetailsPage() {
                     <p className="text-sm leading-snug">
                       <span className="font-medium">{entry.actorName}</span>{" "}
                       <span className="text-muted-foreground">
-                        {AUDIT_ACTION_LABELS[entry.action].toLowerCase()}
+                        {(AUDIT_ACTION_LABELS[entry.action] ?? entry.action).toLowerCase()}
                       </span>{" "}
                       <span className="font-medium">{entry.entityLabel}</span>
                     </p>

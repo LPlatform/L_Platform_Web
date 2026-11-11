@@ -56,7 +56,7 @@ export function ListToolbar({
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
             placeholder={searchPlaceholder}
-            className="pr-9 [&::-webkit-search-cancel-button]:hidden"
+            className="pr-9 pl-9 [&::-webkit-search-cancel-button]:hidden"
           />
           {search && (
             <button

@@ -26,6 +26,8 @@ export const COURSE_STATUS_LABELS: Record<CourseStatus, string> = {
 export interface Course {
   id: string;
   publicId: string;
+  organizationId?: string | null;
+  isPlatformCourse?: boolean;
   title: string;
   description: string;
   category: string;

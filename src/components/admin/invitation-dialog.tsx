@@ -77,9 +77,7 @@ export function InvitationDialog({
     setFormError(null);
     try {
       const invitation = await createInvitation.mutateAsync(values);
-      toast.success(
-        `Invitation created for ${invitation.recipient}. No email was sent in this mock environment.`,
-      );
+      toast.success(`Invitation record created for ${invitation.recipient}. No email was sent.`);
       onOpenChange(false);
     } catch (error) {
       if (isApiError(error) && error.fieldErrors) {
@@ -99,8 +97,8 @@ export function InvitationDialog({
         <DialogHeader>
           <DialogTitle>Invite a new member</DialogTitle>
           <DialogDescription>
-            Create a mock invitation for an organization admin, teacher or student. Nothing is sent
-            by email or message in this build.
+            Create an invitation record for an organization admin, teacher or student. Email
+            delivery is not configured, so nothing is sent to the recipient.
           </DialogDescription>
         </DialogHeader>
 

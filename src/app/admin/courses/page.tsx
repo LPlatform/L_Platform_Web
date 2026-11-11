@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { services, getErrorMessage } from "@/lib/api";
 import { formatDate } from "@/lib/dates";
 import { useCourses, useDebouncedValue } from "@/lib/hooks/use-platform-data";
-import { downloadCsv } from "@/lib/utils";
+import { cn, downloadCsv } from "@/lib/utils";
 import {
   COURSE_STATUS_LABELS,
   DIFFICULTY_LABELS,
@@ -49,6 +49,14 @@ const columns: DataTableColumn<Course>[] = [
         <p className="text-muted-foreground truncate text-xs">{row.original.publicId}</p>
       </div>
     ),
+  },
+  {
+    id: "scope",
+    header: "Scope",
+    cell: ({ row }) => {
+      const isFree = row.original.isPlatformCourse || row.original.organizationId === null;
+      return <StatusBadge status={isFree ? "PLATFORM_FREE" : "SCHOOL"} />;
+    },
   },
   {
     id: "category",
@@ -101,6 +109,7 @@ const columns: DataTableColumn<Course>[] = [
 export default function CoursesPage() {
   const router = useRouter();
   const [search, setSearch] = React.useState("");
+  const [scopeFilter, setScopeFilter] = React.useState<"ALL" | "PLATFORM_FREE" | "SCHOOL">("ALL");
   const [language, setLanguage] = React.useState("");
   const [difficulty, setDifficulty] = React.useState("");
   const [status, setStatus] = React.useState("");
@@ -126,6 +135,15 @@ export default function CoursesPage() {
   );
 
   const courses = useCourses(query);
+
+  const filteredItems = React.useMemo(() => {
+    const items = courses.data?.items ?? [];
+    if (scopeFilter === "ALL") return items;
+    return items.filter((course) => {
+      const isFree = course.isPlatformCourse || course.organizationId === null;
+      return scopeFilter === "PLATFORM_FREE" ? isFree : !isFree;
+    });
+  }, [courses.data?.items, scopeFilter]);
 
   function handleSort(nextSortBy: string, nextSortDir: SortDirection) {
     setSortBy(nextSortBy);
@@ -168,21 +186,21 @@ export default function CoursesPage() {
     }
   }
 
-  const hasFilters = Boolean(search || language || difficulty || status);
+  const hasFilters = Boolean(search || language || difficulty || status || scopeFilter !== "ALL");
 
   return (
     <div className="space-y-6">
       <PageHeader
         eyebrow="Course catalog"
         title="Courses"
-        description="The platform course catalog. Courses must be active before they can be allocated to an organization, class or section."
+        description="Manage Platform Free courses and school-specific courses. Courses must be active before they can be allocated."
         actions={
           <>
             <Button variant="outline" onClick={() => void handleExport()} disabled={exporting}>
               <Download className="size-4" />
               {exporting ? "Exporting…" : "Export CSV"}
             </Button>
-            <Button asChild>
+            <Button className="lp-gradient-bg border-0 text-white hover:opacity-95" asChild>
               <Link href="/admin/courses/new">
                 <Plus className="size-4" />
                 New course
@@ -191,6 +209,28 @@ export default function CoursesPage() {
           </>
         }
       />
+
+      <div className="flex flex-wrap items-center gap-2">
+        {[
+          { key: "ALL" as const, label: "All Courses" },
+          { key: "PLATFORM_FREE" as const, label: "Platform Free Courses" },
+          { key: "SCHOOL" as const, label: "School Courses" },
+        ].map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => setScopeFilter(tab.key)}
+            className={cn(
+              "rounded-xl border px-3.5 py-2 text-xs font-semibold transition-all",
+              scopeFilter === tab.key
+                ? "lp-gradient-bg border-transparent text-white shadow-sm"
+                : "border-border bg-card text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
       <ListToolbar
         search={search}
@@ -233,7 +273,7 @@ export default function CoursesPage() {
 
       <DataTable
         columns={columns}
-        data={courses.data?.items ?? []}
+        data={filteredItems}
         loading={courses.isLoading}
         error={courses.error}
         onRetry={() => void courses.refetch()}

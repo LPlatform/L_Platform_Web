@@ -4,17 +4,17 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "L_Platform Admin",
-    template: "%s · L_Platform Admin",
+    default: "L_Platform",
+    template: "%s · L_Platform",
   },
   description:
-    "L_Platform administration portal for organizations, users, classes, courses and course allocation.",
+    "Unified multi-tenant educational learning and programming platform for schools, teachers, and students.",
 };
 
 export const viewport: Viewport = {
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#f7f8fb" },
-    { media: "(prefers-color-scheme: dark)", color: "#111420" },
+    { media: "(prefers-color-scheme: dark)", color: "#090d16" },
   ],
 };
 

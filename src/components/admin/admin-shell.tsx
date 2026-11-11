@@ -1,67 +1,108 @@
 "use client";
 
-import { GraduationCap, Settings2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 import { SidebarNav } from "@/components/admin/nav";
 import { useSession } from "@/components/admin/session-provider";
 import { Topbar } from "@/components/admin/topbar";
-import { UserAvatar } from "@/components/admin/user-avatar";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
 import { ROLE_LABELS } from "@/types";
 
-function Brand() {
+function Brand({ collapsed = false }: { collapsed?: boolean }) {
   return (
     <Link
       href="/admin/dashboard"
-      className="focus-visible:ring-sidebar-primary/60 flex items-center gap-3 rounded-lg px-2 py-1 transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:outline-none"
+      className={cn(
+        "focus-visible:ring-sidebar-primary/60 flex items-center gap-3 rounded-xl py-1 transition-opacity hover:opacity-95 focus-visible:ring-2 focus-visible:outline-none",
+        collapsed ? "justify-center px-0" : "px-1",
+      )}
     >
-      <span className="bg-sidebar-primary text-sidebar-primary-foreground flex size-9 shrink-0 items-center justify-center rounded-lg shadow-sm">
-        <GraduationCap className="size-5" aria-hidden />
+      <span className="lp-gradient-bg flex size-9 shrink-0 items-center justify-center rounded-xl text-sm font-bold tracking-tight text-white shadow-md shadow-violet-950/40">
+        LP
       </span>
-      <span className="min-w-0">
-        <span className="text-sidebar-foreground block truncate text-sm font-semibold tracking-tight">
-          L_Platform
+      {!collapsed && (
+        <span className="min-w-0">
+          <span className="text-sidebar-foreground block truncate text-sm font-bold tracking-tight">
+            L_Platform
+          </span>
+          <span className="text-sidebar-muted block text-[11px] font-medium">Admin Portal</span>
         </span>
-        <span className="text-sidebar-muted block text-[11px] font-medium tracking-[0.16em] uppercase">
-          Admin portal
-        </span>
-      </span>
+      )}
     </Link>
   );
 }
 
-function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
+function SidebarContent({
+  onNavigate,
+  collapsed = false,
+  onToggleCollapse,
+}: {
+  onNavigate?: () => void;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
+}) {
   const { session } = useSession();
-  const [firstName = "", ...restName] = session.name.split(" ");
-  const lastName = restName.join(" ");
 
   return (
     <>
-      <div className="border-sidebar-border flex h-16 shrink-0 items-center border-b px-4">
-        <Brand />
+      <div
+        className={cn(
+          "border-sidebar-border flex h-16 shrink-0 items-center border-b",
+          collapsed ? "justify-center px-2" : "px-4",
+        )}
+      >
+        <Brand collapsed={collapsed} />
       </div>
-      <SidebarNav onNavigate={onNavigate} />
-      <div className="border-sidebar-border shrink-0 border-t p-3">
+
+      <SidebarNav onNavigate={onNavigate} collapsed={collapsed} />
+
+      <div className="border-sidebar-border shrink-0 space-y-2 border-t p-3">
         <Link
           href="/admin/settings"
           onClick={onNavigate}
-          className="hover:bg-sidebar-accent/60 flex items-center gap-3 rounded-lg px-2 py-2 transition-colors"
+          title={collapsed ? `${session.name} (${ROLE_LABELS[session.role]})` : undefined}
+          className={cn(
+            "border-sidebar-border bg-sidebar-accent/70 hover:bg-sidebar-accent flex items-center gap-3 rounded-xl border p-2.5 transition-colors",
+            collapsed && "justify-center p-2",
+          )}
         >
-          <UserAvatar firstName={firstName} lastName={lastName || firstName} size="sm" />
-          <span className="min-w-0 flex-1">
-            <span className="text-sidebar-foreground block truncate text-sm font-medium">
-              {session.name}
-            </span>
-            <span className="text-sidebar-muted block truncate text-[11px]">
-              {ROLE_LABELS[session.role]}
-            </span>
+          <span className="lp-gradient-bg flex size-8 shrink-0 items-center justify-center rounded-lg text-white">
+            <ShieldCheck className="size-4" aria-hidden />
           </span>
-          <Settings2 className="text-sidebar-muted size-4 shrink-0" aria-hidden />
+          {!collapsed && (
+            <span className="min-w-0 flex-1">
+              <span className="text-sidebar-foreground block truncate text-xs font-semibold">
+                {ROLE_LABELS[session.role]}
+              </span>
+              <span className="text-sidebar-muted block truncate text-[11px]">
+                {session.role === "PLATFORM_ADMIN" ? "Global administration" : session.email}
+              </span>
+            </span>
+          )}
         </Link>
-        <p className="text-sidebar-muted/70 px-2 pt-2 text-[10px] font-medium tracking-[0.12em] uppercase">
-          Mock environment · demo data
-        </p>
+
+        {onToggleCollapse && (
+          <button
+            type="button"
+            onClick={onToggleCollapse}
+            className={cn(
+              "text-sidebar-muted hover:bg-sidebar-accent/60 hover:text-sidebar-foreground flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors",
+              collapsed && "justify-center px-0",
+            )}
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {collapsed ? (
+              <ChevronRight className="size-4" aria-hidden />
+            ) : (
+              <>
+                <ChevronLeft className="size-4" aria-hidden />
+                <span>Collapse</span>
+              </>
+            )}
+          </button>
+        )}
       </div>
     </>
   );
@@ -69,6 +110,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = React.useState(false);
+  const [collapsed, setCollapsed] = React.useState(false);
 
   return (
     <div className="bg-background min-h-dvh">
@@ -79,8 +121,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         Skip to content
       </a>
 
-      <aside className="border-sidebar-border bg-sidebar fixed inset-y-0 left-0 z-40 hidden w-[264px] flex-col border-r lg:flex">
-        <SidebarContent />
+      <aside
+        className={cn(
+          "border-sidebar-border bg-sidebar fixed inset-y-0 left-0 z-40 hidden flex-col border-r transition-[width] duration-200 lg:flex",
+          collapsed ? "w-[76px]" : "w-[260px]",
+        )}
+      >
+        <SidebarContent collapsed={collapsed} onToggleCollapse={() => setCollapsed((c) => !c)} />
       </aside>
 
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
@@ -89,15 +136,22 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </SheetContent>
       </Sheet>
 
-      <div className="flex min-h-dvh flex-col lg:pl-[264px]">
+      <div
+        className={cn(
+          "flex min-h-dvh flex-col transition-[padding-left] duration-200",
+          collapsed ? "lg:pl-[76px]" : "lg:pl-[260px]",
+        )}
+      >
         <Topbar onMenuClick={() => setMobileOpen(true)} />
-        <main id="main-content" className="page-container w-full flex-1 py-6 lg:py-8">
+        <main
+          id="main-content"
+          className="page-container w-full min-w-0 flex-1 overflow-x-hidden py-6 lg:py-8"
+        >
           {children}
         </main>
         <footer className="page-container pt-2 pb-6">
           <p className="text-muted-foreground text-xs">
-            L_Platform Admin · Frontend demonstration with simulated data. Authorization and data
-            isolation are enforced by the backend API in production.
+            L_Platform · Multi-Tenant Educational Learning & Programming Platform
           </p>
         </footer>
       </div>

@@ -38,7 +38,7 @@ export default function ReportsPage() {
       <PageHeader
         eyebrow="Insights"
         title="Reports"
-        description="Generated snapshots of organization, class, course and onboarding activity. Reports are computed from the mock dataset on request and can be exported as CSV."
+        description="Generated snapshots of organization, class, course and onboarding activity. Reports are computed directly from your live database on request and can be exported as CSV."
         actions={
           <Button variant="outline" asChild>
             <Link href="/admin/audit-logs">

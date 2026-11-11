@@ -18,8 +18,7 @@ export function PermissionList({ className }: { className?: string }) {
         </span>
         <CardTitle>Organization administrator access</CardTitle>
         <CardDescription>
-          These capabilities are granted by role in this mock environment. Authorization is enforced
-          by the backend in production.
+          These capabilities are granted by role and enforced by the L_Platform Backend API.
         </CardDescription>
       </CardHeader>
       <CardContent>

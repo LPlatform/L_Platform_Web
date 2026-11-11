@@ -291,7 +291,7 @@ export function OrganizationForm({
           {mode === "create" && (
             <FormSection
               title="Initial administrator"
-              description="An invitation is created for this address. No email is sent in this mock environment."
+              description="An invitation record is created for this email address (outbound email delivery is disabled in local mode)."
             >
               <div className="sm:max-w-md">
                 <FormField

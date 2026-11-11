@@ -4,12 +4,13 @@ import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
-import { backendRequest } from "@/lib/api/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
+import { backendRequest } from "@/lib/api/client";
 
 interface TestCaseRow {
   input: string;
@@ -68,12 +69,25 @@ export default function NewQuestionPage() {
     try {
       await backendRequest("/api/questions", {
         method: "POST",
-        body: JSON.stringify({ title, description, inputFormat, outputFormat, constraints, topic, difficulty, marks: Number(marks), status: "PUBLISHED", testCases }),
+        body: JSON.stringify({
+          title,
+          description,
+          inputFormat,
+          outputFormat,
+          constraints,
+          topic,
+          difficulty,
+          marks: Number(marks),
+          status: "PUBLISHED",
+          testCases,
+        }),
       });
-      toast.success("Question and test cases saved to the Backend.");
+      toast.success("Question and test cases saved.");
       router.push("/teacher/questions");
     } catch (cause) {
-      toast.error(cause instanceof Error ? cause.message : "The Backend did not save the question.");
+      toast.error(
+        cause instanceof Error ? cause.message : "The Backend did not save the question.",
+      );
     } finally {
       setSaving(false);
     }
@@ -82,9 +96,9 @@ export default function NewQuestionPage() {
   return (
     <div className="max-w-4xl space-y-6">
       <div className="flex items-center gap-3">
-        <Button asChild variant="ghost" size="sm">
+        <Button asChild variant="outline" size="sm">
           <Link href="/teacher/questions">
-            <ArrowLeft className="mr-2 size-4" />
+            <ArrowLeft className="size-4" />
             Back to Questions
           </Link>
         </Button>
@@ -93,8 +107,8 @@ export default function NewQuestionPage() {
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Create Programming Problem</h2>
         <p className="text-muted-foreground text-sm">
-          Define problem requirements, formats, sample cases for students, and hidden test cases for
-          automated grading.
+          Define problem requirements, I/O formats, visible sample test cases, and hidden grading
+          cases.
         </p>
       </div>
 
@@ -102,7 +116,7 @@ export default function NewQuestionPage() {
         <Card>
           <CardHeader>
             <CardTitle>Problem Details</CardTitle>
-            <CardDescription>Basic problem statement and constraints</CardDescription>
+            <CardDescription>Statement, difficulty, and constraints</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-2">
@@ -116,7 +130,7 @@ export default function NewQuestionPage() {
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid gap-4 sm:grid-cols-3">
               <div className="grid gap-2">
                 <Label htmlFor="topic">Topic</Label>
                 <Input
@@ -129,16 +143,15 @@ export default function NewQuestionPage() {
 
               <div className="grid gap-2">
                 <Label htmlFor="difficulty">Difficulty</Label>
-                <select
+                <NativeSelect
                   id="difficulty"
-                  className="border-input bg-background rounded-md border px-3 py-2 text-sm"
                   value={difficulty}
                   onChange={(e) => setDifficulty(e.target.value)}
                 >
                   <option value="EASY">Easy</option>
                   <option value="MEDIUM">Medium</option>
                   <option value="HARD">Hard</option>
-                </select>
+                </NativeSelect>
               </div>
 
               <div className="grid gap-2">
@@ -157,7 +170,7 @@ export default function NewQuestionPage() {
               <textarea
                 id="desc"
                 rows={4}
-                className="border-input bg-background w-full rounded-md border p-3 text-sm"
+                className="border-input bg-secondary/60 w-full rounded-xl border p-3 text-sm"
                 placeholder="Explain the problem statement clearly..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -165,13 +178,13 @@ export default function NewQuestionPage() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="grid gap-2">
                 <Label htmlFor="inputFormat">Input Format</Label>
                 <textarea
                   id="inputFormat"
                   rows={2}
-                  className="border-input bg-background w-full rounded-md border p-3 text-sm"
+                  className="border-input bg-secondary/60 w-full rounded-xl border p-3 text-sm"
                   placeholder="Describe standard input format..."
                   value={inputFormat}
                   onChange={(e) => setInputFormat(e.target.value)}
@@ -183,7 +196,7 @@ export default function NewQuestionPage() {
                 <textarea
                   id="outputFormat"
                   rows={2}
-                  className="border-input bg-background w-full rounded-md border p-3 text-sm"
+                  className="border-input bg-secondary/60 w-full rounded-xl border p-3 text-sm"
                   placeholder="Describe expected output format..."
                   value={outputFormat}
                   onChange={(e) => setOutputFormat(e.target.value)}
@@ -195,7 +208,7 @@ export default function NewQuestionPage() {
               <Label htmlFor="constraints">Constraints</Label>
               <Input
                 id="constraints"
-                placeholder="e.g. 1 <= N <= 10^5, -10^9 <= A[i] <= 10^9"
+                placeholder="e.g. 1 <= N <= 10^5"
                 value={constraints}
                 onChange={(e) => setConstraints(e.target.value)}
               />
@@ -203,25 +216,26 @@ export default function NewQuestionPage() {
           </CardContent>
         </Card>
 
-        {/* Test Cases */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle>Test Cases</CardTitle>
               <CardDescription>
-                Define sample test cases visible to students and hidden test cases for secure
-                grading.
+                Sample test cases are visible in the Student IDE; hidden cases run on evaluation.
               </CardDescription>
             </div>
             <Button type="button" variant="outline" size="sm" onClick={addTestCase}>
-              <Plus className="mr-2 size-4" />
+              <Plus className="size-4" />
               Add Test Case
             </Button>
           </CardHeader>
           <CardContent className="space-y-4">
             {testCases.map((tc, idx) => (
-              <div key={idx} className="border-border space-y-3 rounded-lg border p-4">
-                <div className="flex items-center justify-between">
+              <div
+                key={idx}
+                className="border-border bg-secondary/30 space-y-3 rounded-xl border p-4"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="text-sm font-semibold">Test Case #{idx + 1}</span>
                   <div className="flex items-center gap-4">
                     <label className="flex items-center gap-2 text-xs">
@@ -233,7 +247,7 @@ export default function NewQuestionPage() {
                           if (e.target.checked) updateTestCase(idx, "isHidden", false);
                         }}
                       />
-                      Sample (Visible to student)
+                      Sample (Visible)
                     </label>
 
                     <label className="flex items-center gap-2 text-xs">
@@ -245,7 +259,7 @@ export default function NewQuestionPage() {
                           if (e.target.checked) updateTestCase(idx, "isSample", false);
                         }}
                       />
-                      Hidden (Grading only)
+                      Hidden (Grading)
                     </label>
 
                     {testCases.length > 1 && (
@@ -254,7 +268,7 @@ export default function NewQuestionPage() {
                         variant="ghost"
                         size="icon-sm"
                         onClick={() => removeTestCase(idx)}
-                        className="text-red-500 hover:text-red-700"
+                        className="text-rose-400 hover:text-rose-300"
                       >
                         <Trash2 className="size-4" />
                       </Button>
@@ -262,12 +276,12 @@ export default function NewQuestionPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-4 sm:grid-cols-2">
                   <div className="grid gap-1">
                     <Label className="text-xs">Standard Input</Label>
                     <textarea
                       rows={2}
-                      className="border-input bg-background rounded-md border p-2 font-mono text-xs"
+                      className="border-input bg-background rounded-lg border p-2.5 font-mono text-xs"
                       placeholder="Input passed to stdin..."
                       value={tc.input}
                       onChange={(e) => updateTestCase(idx, "input", e.target.value)}
@@ -278,7 +292,7 @@ export default function NewQuestionPage() {
                     <Label className="text-xs">Expected Output</Label>
                     <textarea
                       rows={2}
-                      className="border-input bg-background rounded-md border p-2 font-mono text-xs"
+                      className="border-input bg-background rounded-lg border p-2.5 font-mono text-xs"
                       placeholder="Expected output on stdout..."
                       value={tc.expectedOutput}
                       onChange={(e) => updateTestCase(idx, "expectedOutput", e.target.value)}
@@ -294,7 +308,11 @@ export default function NewQuestionPage() {
           <Button asChild variant="outline">
             <Link href="/teacher/questions">Cancel</Link>
           </Button>
-          <Button type="submit" disabled={saving} className="bg-emerald-600 text-white hover:bg-emerald-700">
+          <Button
+            type="submit"
+            disabled={saving}
+            className="lp-gradient-bg border-0 text-white hover:opacity-95"
+          >
             {saving ? "Saving…" : "Save Question"}
           </Button>
         </div>

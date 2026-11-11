@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test.describe("mock authentication boundary", () => {
+test.describe("backend authentication boundary", () => {
   test("redirects unauthenticated admin routes to sign-in", async ({ page }) => {
     await page.goto("/admin/dashboard");
 
@@ -15,7 +15,7 @@ test.describe("mock authentication boundary", () => {
     await page.getByLabel("Password", { exact: true }).fill("not-the-password");
     await page.getByRole("button", { name: "Sign in to admin portal" }).click();
 
-    await expect(page.getByText("Invalid email address or password.")).toBeVisible();
+    await expect(page.getByText(/Invalid email address or password\.?/i)).toBeVisible();
     await expect(page).toHaveURL(/\/login/);
   });
 });
@@ -57,7 +57,7 @@ test.describe("admin portal golden path", () => {
       await page.getByLabel("Administrator email").fill(administratorEmail);
       await page.getByRole("button", { name: "Create organization" }).click();
 
-      await expect(page).toHaveURL(/\/admin\/organizations\/[^/]+$/);
+      await expect(page).toHaveURL(/\/admin\/organizations\/org-[^/]+$/);
       await expect(page.getByRole("heading", { name: organizationName })).toBeVisible();
       await expect(page.getByText("Organization created.")).toBeVisible();
       organizationId = new URL(page.url()).pathname.split("/").pop() ?? "";
@@ -80,7 +80,7 @@ test.describe("admin portal golden path", () => {
       await page.getByLabel("Academic year").selectOption(academicYear);
       await page.getByRole("button", { name: "Create class" }).click();
 
-      await expect(page).toHaveURL(/\/admin\/classes\/[^/]+$/);
+      await expect(page).toHaveURL(/\/admin\/classes\/cls-[^/]+$/);
       await expect(page.getByRole("heading", { name: "Class 6 QA" })).toBeVisible();
       classId = new URL(page.url()).pathname.split("/").pop() ?? "";
       expect(classId).not.toBe("");
@@ -92,7 +92,7 @@ test.describe("admin portal golden path", () => {
       await page.getByLabel("Section name").fill("Section QA");
       await page.getByRole("button", { name: "Create section" }).click();
 
-      await expect(page).toHaveURL(/\/admin\/sections\/[^/]+$/);
+      await expect(page).toHaveURL(/\/admin\/sections\/sec-[^/]+$/);
       await expect(page.getByRole("heading", { name: "Section QA" })).toBeVisible();
       sectionId = new URL(page.url()).pathname.split("/").pop() ?? "";
       expect(sectionId).not.toBe("");
@@ -111,7 +111,7 @@ test.describe("admin portal golden path", () => {
       await organizationSelect.selectOption(optionValue ?? "");
       await page.getByRole("button", { name: "Create account" }).click();
 
-      await expect(page).toHaveURL(/\/admin\/users\/[^/]+$/);
+      await expect(page).toHaveURL(/\/admin\/users\/usr-[^/]+$/);
       await expect(page.getByRole("heading", { name: "QA Student", level: 1 })).toBeVisible();
 
       await page.goto(`/admin/sections/${sectionId}`);
@@ -141,7 +141,7 @@ test.describe("admin portal golden path", () => {
       await page.getByLabel("Difficulty").selectOption("BEGINNER");
       await page.getByRole("button", { name: "Create course" }).click();
 
-      await expect(page).toHaveURL(/\/admin\/courses\/[^/]+$/);
+      await expect(page).toHaveURL(/\/admin\/courses\/crs-[^/]+$/);
       await expect(page.getByRole("heading", { name: courseTitle })).toBeVisible();
       courseId = new URL(page.url()).pathname.split("/").pop() ?? "";
       expect(courseId).not.toBe("");
@@ -156,7 +156,7 @@ test.describe("admin portal golden path", () => {
       await expect(confirmDialog).toBeVisible();
       await confirmDialog.getByRole("button", { name: "Create allocation" }).click();
 
-      await expect(page).toHaveURL(/\/admin\/allocations\/[^/]+$/);
+      await expect(page).toHaveURL(/\/admin\/allocations\/alloc-[^/]+$/);
       await expect(page.getByRole("heading", { name: courseTitle })).toBeVisible();
     });
 
@@ -176,7 +176,7 @@ test.describe("admin portal golden path", () => {
       await dialog.getByRole("button", { name: "Create invitation" }).click();
 
       await expect(
-        page.getByText(`Invitation created for ${inviteEmail}. No email was sent`),
+        page.getByText(`Invitation record created for ${inviteEmail}. No email was sent.`),
       ).toBeVisible();
       await expect(page.getByRole("button", { name: `Actions for ${inviteEmail}` })).toBeVisible();
 
@@ -223,10 +223,12 @@ test.describe("admin portal golden path", () => {
       await page.getByRole("button", { name: "Save settings" }).click();
       await expect(page.getByText("Settings saved.")).toBeVisible();
 
-      await page.getByRole("button", { name: "Reset demo data" }).first().click();
-      const resetDialog = page.getByRole("dialog", { name: "Reset all demo data?" });
-      await resetDialog.getByRole("button", { name: "Reset demo data" }).click();
-      await expect(page.getByText("Demo data restored from the seed dataset.")).toBeVisible();
+      await page.getByRole("button", { name: "Seed demo data" }).first().click();
+      const resetDialog = page.getByRole("dialog", { name: "Seed baseline demo data?" });
+      await resetDialog.getByRole("button", { name: "Seed demo data" }).click();
+      await expect(
+        page.getByText("Baseline demo data seeded. Existing records were kept."),
+      ).toBeVisible();
     });
   });
 });

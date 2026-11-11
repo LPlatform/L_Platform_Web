@@ -95,7 +95,7 @@ export default function ReportDetailPage() {
             <Badge variant="outline">{report.data.rows.length} rows</Badge>
             <span>Generated {formatDateTime(report.data.generatedAt)}</span>
             <span>·</span>
-            <span>Snapshot of the current mock dataset</span>
+            <span>Live snapshot from PostgreSQL</span>
           </div>
 
           <div className="border-border bg-card overflow-hidden rounded-xl border shadow-xs">

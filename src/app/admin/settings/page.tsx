@@ -60,7 +60,7 @@ const NOTIFICATIONS: Array<{
   {
     key: "weeklyDigest",
     label: "Weekly digest",
-    description: "Summarise platform activity every Monday. Delivery is mocked.",
+    description: "Store weekly Monday activity summary preference in platform settings.",
   },
 ];
 
@@ -72,8 +72,8 @@ export default function SettingsPage() {
       <PageHeader
         eyebrow="Platform"
         title="Settings"
-        description="Configure the demo platform's identity, notification preferences, administrator profile and session policy. Changes are stored in the browser only."
-        actions={<Badge variant="muted">Mock environment</Badge>}
+        description="Configure platform identity, notification preferences, administrator profile and session policy. Changes are saved to the backend."
+        actions={<Badge variant="muted">Development environment</Badge>}
       />
 
       {settings.isLoading ? (
@@ -143,7 +143,7 @@ function SettingsForm({ settings }: { settings: PlatformSettings }) {
 
   async function handleReset() {
     await resetDemoData.mutateAsync();
-    toast.success("Demo data restored from the seed dataset.");
+    toast.success("Baseline demo data seeded. Existing records were kept.");
     setResetOpen(false);
   }
 
@@ -372,16 +372,15 @@ function SettingsForm({ settings }: { settings: PlatformSettings }) {
       <Card className="border-destructive/30 max-w-4xl">
         <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
           <div className="space-y-1">
-            <p className="text-sm font-semibold">Reset demo data</p>
+            <p className="text-sm font-semibold">Seed baseline demo data</p>
             <p className="text-muted-foreground max-w-2xl text-sm leading-relaxed">
-              Restore the seeded organizations, users, classes, courses, allocations and
-              invitations. Every change made in this browser session is discarded. This cannot be
-              undone.
+              Add the baseline development organizations, users, classes, courses and assignments.
+              Existing records are preserved; this does not erase your data.
             </p>
           </div>
-          <Button variant="destructive" onClick={() => setResetOpen(true)}>
+          <Button variant="outline" onClick={() => setResetOpen(true)}>
             <RotateCcw className="size-4" />
-            Reset demo data
+            Seed demo data
           </Button>
         </CardContent>
       </Card>
@@ -389,10 +388,10 @@ function SettingsForm({ settings }: { settings: PlatformSettings }) {
       <ConfirmDialog
         open={resetOpen}
         onOpenChange={setResetOpen}
-        title="Reset all demo data?"
-        description="The browser dataset is replaced with the original seed data. Settings, invitations and audit events created in this session are lost."
-        confirmLabel="Reset demo data"
-        tone="destructive"
+        title="Seed baseline demo data?"
+        description="Baseline records will be added where missing. Existing records and settings are preserved."
+        confirmLabel="Seed demo data"
+        tone="default"
         onConfirm={handleReset}
       />
     </div>

@@ -205,6 +205,19 @@ export default function SectionDetailsPage() {
 
       <div className="flex flex-wrap items-center gap-2">
         <StatusBadge status={data.status} />
+        {data.joinCode && (
+          <button
+            type="button"
+            onClick={() => {
+              void navigator.clipboard?.writeText(data.joinCode || "");
+              toast.success(`Copied join code ${data.joinCode}`);
+            }}
+            className="border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 font-mono text-xs font-semibold transition-colors"
+            title="Click to copy student join code"
+          >
+            Join code: {data.joinCode}
+          </button>
+        )}
         <Link
           href={`/admin/classes/${data.classId}`}
           className="text-primary text-sm font-medium hover:underline"
@@ -382,9 +395,12 @@ export default function SectionDetailsPage() {
                         size="sm"
                       />
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium">
-                          {teacher.firstName} {teacher.lastName}
-                        </p>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="truncate text-sm font-medium">
+                            {teacher.firstName} {teacher.lastName}
+                          </p>
+                          {teacher.teacherRole && <StatusBadge status={teacher.teacherRole} />}
+                        </div>
                         <p className="text-muted-foreground truncate text-xs">
                           {teacher.email ??
                             (teacher.username ? `@${teacher.username}` : teacher.publicId)}
