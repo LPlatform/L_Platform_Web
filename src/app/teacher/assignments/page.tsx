@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Code2, Lock, Plus, Send, Users } from "lucide-react";
+import { CheckCircle2, Code2, Eye, Lock, Plus, Send, Users } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 import { toast } from "sonner";
@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/admin/empty-state";
 import { PageHeader } from "@/components/admin/page-header";
 import { StatCard } from "@/components/admin/stat-card";
 import { StatusBadge } from "@/components/admin/status-badge";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -25,6 +26,7 @@ import { cn } from "@/lib/utils";
 type AssignmentRow = {
   id: string;
   title: string;
+  assignmentType?: string;
   sectionName: string;
   className?: string;
   totalMarks: number;
@@ -174,8 +176,9 @@ export default function TeacherAssignmentsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Assignment Title</TableHead>
+                  <TableHead>Type</TableHead>
                   <TableHead>Section</TableHead>
-                  <TableHead>Problems</TableHead>
+                  <TableHead>Questions</TableHead>
                   <TableHead>Marks</TableHead>
                   <TableHead>Submissions</TableHead>
                   <TableHead>Due Date</TableHead>
@@ -186,12 +189,24 @@ export default function TeacherAssignmentsPage() {
               <TableBody>
                 {filtered.map((asg) => (
                   <TableRow key={asg.id}>
-                    <TableCell className="font-semibold">{asg.title}</TableCell>
+                    <TableCell className="font-semibold">
+                      <Link
+                        href={`/teacher/assignments/${encodeURIComponent(asg.id)}`}
+                        className="hover:text-primary transition-colors"
+                      >
+                        {asg.title}
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="text-[11px]">
+                        {asg.assignmentType || "PROGRAMMING"}
+                      </Badge>
+                    </TableCell>
                     <TableCell className="text-muted-foreground">
                       {asg.className ? `${asg.className} · ` : ""}
                       {asg.sectionName}
                     </TableCell>
-                    <TableCell className="tabular-nums">{asg.questionCount} problems</TableCell>
+                    <TableCell className="tabular-nums">{asg.questionCount} questions</TableCell>
                     <TableCell className="tabular-nums">{asg.totalMarks} pts</TableCell>
                     <TableCell className="tabular-nums">{asg.submissionCount} submitted</TableCell>
                     <TableCell className="text-muted-foreground text-xs whitespace-nowrap">
@@ -201,27 +216,35 @@ export default function TeacherAssignmentsPage() {
                       <StatusBadge status={asg.status} />
                     </TableCell>
                     <TableCell className="text-right">
-                      {asg.status !== "PUBLISHED" ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={busyId === asg.id}
-                          onClick={() => void handleStatusChange(asg.id, "PUBLISHED")}
-                        >
-                          <Send className="size-3.5" />
-                          Publish
+                      <div className="flex justify-end gap-2">
+                        <Button size="sm" variant="ghost" asChild>
+                          <Link href={`/teacher/assignments/${encodeURIComponent(asg.id)}`}>
+                            <Eye className="size-3.5" />
+                            Manage
+                          </Link>
                         </Button>
-                      ) : (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={busyId === asg.id}
-                          onClick={() => void handleStatusChange(asg.id, "CLOSED")}
-                        >
-                          <Lock className="size-3.5" />
-                          Close
-                        </Button>
-                      )}
+                        {asg.status !== "PUBLISHED" ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={busyId === asg.id}
+                            onClick={() => void handleStatusChange(asg.id, "PUBLISHED")}
+                          >
+                            <Send className="size-3.5" />
+                            Publish
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={busyId === asg.id}
+                            onClick={() => void handleStatusChange(asg.id, "CLOSED")}
+                          >
+                            <Lock className="size-3.5" />
+                            Close
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

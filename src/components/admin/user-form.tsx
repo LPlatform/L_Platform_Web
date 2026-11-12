@@ -24,7 +24,14 @@ import { userInputSchema, type UserFormValues } from "@/lib/validation/user";
 import type { UserRole, UserWithOrganization } from "@/types";
 import { ROLE_LABELS } from "@/types";
 
-const ASSIGNABLE_ROLES: UserRole[] = ["ORGANIZATION_ADMIN", "TEACHER", "STUDENT"];
+const ASSIGNABLE_ROLES: UserRole[] = [
+  "PLATFORM_OWNER",
+  "PLATFORM_DEVELOPER",
+  "ORGANIZATION_ADMIN",
+  "TEACHER",
+  "STUDENT",
+];
+const GLOBAL_ROLES = new Set<UserRole>(["PLATFORM_OWNER", "PLATFORM_DEVELOPER", "PLATFORM_ADMIN"]);
 
 export function UserForm({
   mode,
@@ -51,6 +58,8 @@ export function UserForm({
     register,
     handleSubmit,
     setError,
+    setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<UserFormValues>({
     resolver: zodResolver(userInputSchema),
@@ -65,19 +74,29 @@ export function UserForm({
     },
   });
 
+  const watchedRole = watch("role");
+  const isGlobalRole = variant !== "administrator" && GLOBAL_ROLES.has(watchedRole);
+
+  React.useEffect(() => {
+    if (isGlobalRole) {
+      setValue("organizationId", null);
+    }
+  }, [isGlobalRole, setValue]);
+
   async function onSubmit(values: UserFormValues) {
     setFormError(null);
     const role: UserRole = variant === "administrator" ? "ORGANIZATION_ADMIN" : values.role;
 
     try {
       if (mode === "create") {
+        const isGlobal = GLOBAL_ROLES.has(role);
         const payload = {
           firstName: values.firstName,
           lastName: values.lastName,
           email: values.email,
           username: values.username?.trim() || undefined,
           role,
-          organizationId: values.organizationId || null,
+          organizationId: isGlobal ? null : values.organizationId || null,
           status: values.status,
         };
         const created =
@@ -240,15 +259,17 @@ export function UserForm({
                 label="Organization"
                 htmlFor="organizationId"
                 error={errors.organizationId?.message}
-                required
+                required={!isGlobalRole}
               >
                 <NativeSelect
                   id="organizationId"
                   {...register("organizationId")}
                   aria-invalid={Boolean(errors.organizationId)}
-                  disabled={organizations.isLoading}
+                  disabled={organizations.isLoading || isGlobalRole}
                 >
-                  <option value="">Select an organization</option>
+                  <option value="">
+                    {isGlobalRole ? "Platform-wide (no organization)" : "Select an organization"}
+                  </option>
                   {(organizations.data ?? []).map((organization) => (
                     <option key={organization.id} value={organization.id}>
                       {organization.name} ({organization.publicId})

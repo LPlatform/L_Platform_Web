@@ -64,6 +64,10 @@ const NOTIFICATIONS: Array<{
   },
 ];
 
+const SHOW_DEMO_RESET =
+  process.env.NEXT_PUBLIC_ENABLE_DEMO_RESET === "true" ||
+  (process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_ENABLE_DEMO_RESET !== "false");
+
 export default function SettingsPage() {
   const settings = useSettings();
 
@@ -73,7 +77,13 @@ export default function SettingsPage() {
         eyebrow="Platform"
         title="Settings"
         description="Configure platform identity, notification preferences, administrator profile and session policy. Changes are saved to the backend."
-        actions={<Badge variant="muted">Development environment</Badge>}
+        actions={
+          <Badge variant="muted">
+            {process.env.NODE_ENV === "production"
+              ? "Production environment"
+              : "Development environment"}
+          </Badge>
+        }
       />
 
       {settings.isLoading ? (
@@ -369,31 +379,35 @@ function SettingsForm({ settings }: { settings: PlatformSettings }) {
         </CardContent>
       </Card>
 
-      <Card className="border-destructive/30 max-w-4xl">
-        <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
-          <div className="space-y-1">
-            <p className="text-sm font-semibold">Seed baseline demo data</p>
-            <p className="text-muted-foreground max-w-2xl text-sm leading-relaxed">
-              Add the baseline development organizations, users, classes, courses and assignments.
-              Existing records are preserved; this does not erase your data.
-            </p>
-          </div>
-          <Button variant="outline" onClick={() => setResetOpen(true)}>
-            <RotateCcw className="size-4" />
-            Seed demo data
-          </Button>
-        </CardContent>
-      </Card>
+      {SHOW_DEMO_RESET && (
+        <>
+          <Card className="border-destructive/30 max-w-4xl">
+            <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+              <div className="space-y-1">
+                <p className="text-sm font-semibold">Seed baseline demo data</p>
+                <p className="text-muted-foreground max-w-2xl text-sm leading-relaxed">
+                  Add the baseline development organizations, users, classes, courses and
+                  assignments. Existing records are preserved; this does not erase your data.
+                </p>
+              </div>
+              <Button variant="outline" onClick={() => setResetOpen(true)}>
+                <RotateCcw className="size-4" />
+                Seed demo data
+              </Button>
+            </CardContent>
+          </Card>
 
-      <ConfirmDialog
-        open={resetOpen}
-        onOpenChange={setResetOpen}
-        title="Seed baseline demo data?"
-        description="Baseline records will be added where missing. Existing records and settings are preserved."
-        confirmLabel="Seed demo data"
-        tone="default"
-        onConfirm={handleReset}
-      />
+          <ConfirmDialog
+            open={resetOpen}
+            onOpenChange={setResetOpen}
+            title="Seed baseline demo data?"
+            description="Baseline records will be added where missing. Existing records and settings are preserved."
+            confirmLabel="Seed demo data"
+            tone="default"
+            onConfirm={handleReset}
+          />
+        </>
+      )}
     </div>
   );
 }

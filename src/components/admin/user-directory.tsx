@@ -27,7 +27,8 @@ import {
 } from "@/types";
 
 const ROLE_OPTIONS: SelectOption[] = [
-  "PLATFORM_ADMIN",
+  "PLATFORM_OWNER",
+  "PLATFORM_DEVELOPER",
   "ORGANIZATION_ADMIN",
   "TEACHER",
   "STUDENT",

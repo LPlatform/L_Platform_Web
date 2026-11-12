@@ -3,25 +3,35 @@ import { z } from "zod";
 const nameField = (label: string) =>
   z.string().trim().min(1, `${label} is required.`).max(60, `${label} is too long.`);
 
+const GLOBAL_ROLES = new Set(["PLATFORM_OWNER", "PLATFORM_DEVELOPER", "PLATFORM_ADMIN"]);
+
 export const userInputSchema = z
   .object({
     firstName: nameField("First name"),
     lastName: nameField("Last name"),
     email: z.string().trim().email("Enter a valid email address."),
-    role: z.enum(["PLATFORM_ADMIN", "ORGANIZATION_ADMIN", "TEACHER", "STUDENT"]),
+    role: z.enum([
+      "PLATFORM_OWNER",
+      "PLATFORM_DEVELOPER",
+      "PLATFORM_ADMIN",
+      "ORGANIZATION_ADMIN",
+      "TEACHER",
+      "STUDENT",
+    ]),
     organizationId: z.string().nullable(),
     status: z.enum(["ACTIVE", "INACTIVE"]),
     username: z.string().trim().max(40).optional(),
   })
   .superRefine((value, context) => {
-    if (value.role === "PLATFORM_ADMIN" && value.organizationId !== null) {
+    const isGlobal = GLOBAL_ROLES.has(value.role);
+    if (isGlobal && value.organizationId !== null && value.organizationId !== "") {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["organizationId"],
-        message: "Platform administrators do not belong to an organization.",
+        message: "Platform-level accounts do not belong to an organization.",
       });
     }
-    if (value.role !== "PLATFORM_ADMIN" && !value.organizationId) {
+    if (!isGlobal && !value.organizationId) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["organizationId"],
@@ -34,7 +44,7 @@ export const userUpdateSchema = userInputSchema
   .innerType()
   .omit({ role: true })
   .superRefine((value, context) => {
-    if (!value.organizationId) {
+    if (value.organizationId === "") {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["organizationId"],

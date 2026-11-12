@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { backendRequest } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 
 type Lesson = { title: string; content: string; activity: string };
@@ -37,12 +38,7 @@ export default function TeacherAiReadinessLessonManagerPage() {
 
   const loadCourse = React.useCallback(() => {
     setError(null);
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    fetch(`${apiBase}/api/learning/ai-readiness`, { credentials: "include" })
-      .then(async (response) => {
-        if (!response.ok) throw new Error(`Course request failed (${response.status})`);
-        return (await response.json()) as CoursePayload;
-      })
+    backendRequest<CoursePayload>("/api/learning/ai-readiness")
       .then((value) => {
         setCourse(value);
         setSelectedId((prev) => prev ?? value.modules[0]?.id ?? null);
@@ -150,10 +146,21 @@ export default function TeacherAiReadinessLessonManagerPage() {
                       {selected.lessons.length} structured lessons
                     </span>
                   </div>
-                  <CardTitle className="pt-1 text-2xl">{selected.title}</CardTitle>
-                  <CardDescription className="text-sm leading-relaxed">
-                    {selected.introduction}
-                  </CardDescription>
+                  <div className="flex flex-wrap items-start justify-between gap-3 pt-1">
+                    <div className="space-y-1">
+                      <CardTitle className="text-2xl">{selected.title}</CardTitle>
+                      <CardDescription className="text-sm leading-relaxed">
+                        {selected.introduction}
+                      </CardDescription>
+                    </div>
+                    <Button variant="outline" size="sm" asChild>
+                      <Link
+                        href={`/teacher/questions?courseModuleId=${encodeURIComponent(selected.id)}`}
+                      >
+                        Browse Module Questions
+                      </Link>
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent className="grid gap-4 md:grid-cols-2">
                   <div className="border-border bg-secondary/40 rounded-xl border p-4">

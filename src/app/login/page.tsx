@@ -22,7 +22,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { DEMO_ACCOUNTS, authService, getErrorMessage } from "@/lib/api";
+import { DEMO_ACCOUNTS, SHOW_DEMO_ACCOUNTS, authService, getErrorMessage } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { loginSchema, type LoginFormValues } from "@/lib/validation/auth";
 
@@ -137,17 +137,23 @@ function LoginForm() {
       let destination = "/admin/dashboard";
       if (session.role === "TEACHER") {
         destination = requested?.startsWith("/teacher") ? requested : "/teacher/dashboard";
+      } else if (session.role === "PLATFORM_DEVELOPER") {
+        destination =
+          requested &&
+          (requested.startsWith("/admin/courses") || requested.startsWith("/admin/reports"))
+            ? requested
+            : "/admin/courses";
       } else {
         destination = requested?.startsWith("/admin") ? requested : "/admin/dashboard";
       }
       router.replace(destination);
-      router.refresh();
     } catch (error) {
       setFormError(getErrorMessage(error));
     }
   }
 
   function fillDemoAccount(index: number) {
+    if (process.env.NODE_ENV === "production") return;
     const account = DEMO_ACCOUNTS[index];
     if (!account) return;
     setValue("email", account.email, { shouldValidate: true });
@@ -337,49 +343,53 @@ function LoginForm() {
               </Button>
             </form>
 
-            <div className="mt-6">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center" aria-hidden>
-                  <span className="border-border w-full border-t" />
-                </div>
-                <div className="relative flex justify-center">
-                  <span className="bg-card text-muted-foreground px-3 text-[11px] font-medium tracking-wider uppercase">
-                    Local role quick-fill
-                  </span>
-                </div>
-              </div>
+            {process.env.NODE_ENV !== "production" &&
+              SHOW_DEMO_ACCOUNTS &&
+              DEMO_ACCOUNTS.length > 0 && (
+                <div className="mt-6">
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center" aria-hidden>
+                      <span className="border-border w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center">
+                      <span className="bg-card text-muted-foreground px-3 text-[11px] font-medium tracking-wider uppercase">
+                        Local role quick-fill
+                      </span>
+                    </div>
+                  </div>
 
-              <div className="mt-3 grid gap-2">
-                {DEMO_ACCOUNTS.map((account, index) => (
-                  <button
-                    key={account.email}
-                    type="button"
-                    onClick={() => fillDemoAccount(index)}
-                    className={cn(
-                      "group border-border bg-secondary/50 flex items-center justify-between gap-3 rounded-xl border px-3.5 py-2.5 text-left transition-all",
-                      "hover:border-primary/50 hover:bg-secondary focus-visible:ring-ring/40 focus-visible:ring-2 focus-visible:outline-none",
-                    )}
-                  >
-                    <span className="flex min-w-0 items-center gap-2.5">
-                      <span className="bg-primary/15 text-primary flex size-7 shrink-0 items-center justify-center rounded-lg">
-                        <Building2 className="size-3.5" aria-hidden />
-                      </span>
-                      <span className="min-w-0">
-                        <span className="block truncate text-xs font-semibold">
-                          {account.label}
+                  <div className="mt-3 grid gap-2">
+                    {DEMO_ACCOUNTS.map((account, index) => (
+                      <button
+                        key={account.email}
+                        type="button"
+                        onClick={() => fillDemoAccount(index)}
+                        className={cn(
+                          "group border-border bg-secondary/50 flex items-center justify-between gap-3 rounded-xl border px-3.5 py-2.5 text-left transition-all",
+                          "hover:border-primary/50 hover:bg-secondary focus-visible:ring-ring/40 focus-visible:ring-2 focus-visible:outline-none",
+                        )}
+                      >
+                        <span className="flex min-w-0 items-center gap-2.5">
+                          <span className="bg-primary/15 text-primary flex size-7 shrink-0 items-center justify-center rounded-lg">
+                            <Building2 className="size-3.5" aria-hidden />
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block truncate text-xs font-semibold">
+                              {account.label}
+                            </span>
+                            <span className="text-muted-foreground block truncate text-[11px]">
+                              {account.email}
+                            </span>
+                          </span>
                         </span>
-                        <span className="text-muted-foreground block truncate text-[11px]">
-                          {account.email}
+                        <span className="text-primary shrink-0 text-xs font-medium opacity-75 transition-opacity group-hover:opacity-100">
+                          Fill
                         </span>
-                      </span>
-                    </span>
-                    <span className="text-primary shrink-0 text-xs font-medium opacity-75 transition-opacity group-hover:opacity-100">
-                      Fill
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
           </div>
         </div>
       </div>

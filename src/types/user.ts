@@ -1,8 +1,16 @@
 import type { EntityStatus, PageQuery } from "./common";
 
-export type UserRole = "PLATFORM_ADMIN" | "ORGANIZATION_ADMIN" | "TEACHER" | "STUDENT";
+export type UserRole =
+  | "PLATFORM_OWNER"
+  | "PLATFORM_DEVELOPER"
+  | "PLATFORM_ADMIN"
+  | "ORGANIZATION_ADMIN"
+  | "TEACHER"
+  | "STUDENT";
 
 export const ROLE_LABELS: Record<UserRole, string> = {
+  PLATFORM_OWNER: "Platform Owner",
+  PLATFORM_DEVELOPER: "Platform Developer",
   PLATFORM_ADMIN: "Platform Admin",
   ORGANIZATION_ADMIN: "Organization Admin",
   TEACHER: "Teacher",

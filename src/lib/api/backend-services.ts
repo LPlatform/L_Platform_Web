@@ -1,9 +1,11 @@
+import { API_BASE as API_BASE_URL } from "@/lib/api/base";
+import { normalizeHeader, parseCsv } from "../csv";
 import type { PlatformServices } from "./contracts";
 import { ApiError } from "./errors";
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- Backend responses currently lack generated OpenAPI types; this file is the single transport boundary and its public contract is PlatformServices. */
 
-const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const apiBase = API_BASE_URL;
 
 function queryString(input?: object): string {
   if (!input) return "";
@@ -19,9 +21,12 @@ async function api<T>(path: string, method = "GET", body?: unknown): Promise<T> 
   const response = await fetch(`${apiBase}${path}`, {
     method,
     credentials: "include",
-    headers: { "Content-Type": "application/json" },
+    headers: body !== undefined ? { "Content-Type": "application/json" } : {},
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });
+  if (response.status === 204) {
+    return undefined as T;
+  }
   const value = await response.json().catch(() => ({}));
   if (!response.ok) {
     throw new ApiError(
@@ -78,22 +83,97 @@ export const services = {
     update: (id: string, input: any) => api<any>(`/api/users/${encoded(id)}`, "PATCH", input),
     setStatus: (id: string, status: string) =>
       api<any>(`/api/users/${encoded(id)}/status`, "PATCH", { status }),
-    importPreview: async () => {
-      throw new Error("CSV import preview is not implemented by the Backend API.");
+    importPreview: async (fileName: string, csvText: string) => {
+      const parsedMeta = new Map<number, { username?: string; organizationPublicId?: string }>();
+      try {
+        const parsed = parseCsv(csvText);
+        const normHeaders = parsed.headers.map(normalizeHeader);
+        const userIdx = normHeaders.indexOf("username");
+        const orgIdx = normHeaders.findIndex(
+          (h) => h === "organizationpublicid" || h === "organizationid",
+        );
+        parsed.rows.forEach((cells, idx) => {
+          parsedMeta.set(idx + 1, {
+            username: userIdx >= 0 ? cells[userIdx] || undefined : undefined,
+            organizationPublicId: orgIdx >= 0 ? cells[orgIdx] || "" : "",
+          });
+        });
+      } catch {
+        // Defer malformed CSV details to backend validator.
+      }
+
+      const res = await api<any>("/api/users/import/preview", "POST", { fileName, csvText });
+      return {
+        fileName: res.fileName ?? fileName,
+        rows: (res.rows ?? []).map((row: any, idx: number) => {
+          const rowNum = Number(row.rowNumber ?? idx + 1);
+          const meta = parsedMeta.get(rowNum);
+          return {
+            row: rowNum,
+            firstName: row.firstName ?? "",
+            lastName: row.lastName ?? "",
+            email: row.email || undefined,
+            username: meta?.username,
+            role: row.role === "TEACHER" ? "TEACHER" : "STUDENT",
+            organizationPublicId: meta?.organizationPublicId ?? "",
+            errors: Array.isArray(row.errors) ? row.errors : [],
+            status: row.isValid ? "VALID" : "INVALID",
+          };
+        }),
+        summary: {
+          total: Number(res.totalRows ?? 0),
+          valid: Number(res.validRows ?? 0),
+          invalid: Number(res.invalidRows ?? 0),
+          duplicate: 0,
+        },
+      };
     },
-    importConfirm: async () => {
-      throw new Error("CSV import is not implemented by the Backend API.");
+    importConfirm: async (preview: any) => {
+      const publicId = preview?.rows?.find(
+        (r: any) => r.status === "VALID" && r.organizationPublicId,
+      )?.organizationPublicId;
+      let organizationId: string | undefined;
+      if (publicId) {
+        const orgOptions = await api<any[]>("/api/organizations/options").catch(() => []);
+        const match = (Array.isArray(orgOptions) ? orgOptions : []).find(
+          (o) =>
+            o.id === publicId ||
+            String(o.publicId ?? "").toUpperCase() === String(publicId).toUpperCase(),
+        );
+        if (match?.id) organizationId = match.id;
+      }
+
+      const res = await api<any>("/api/users/import/confirm", "POST", {
+        ...(organizationId ? { organizationId } : {}),
+        rows: (preview?.rows ?? []).map((r: any) => ({
+          email: r.email ?? "",
+          firstName: r.firstName,
+          lastName: r.lastName,
+          role: r.role,
+          isValid: r.status === "VALID",
+        })),
+      });
+      return {
+        imported: Number(res.imported ?? 0),
+        skipped: Number(res.skipped ?? 0),
+        users: res.created ?? [],
+      };
     },
   },
   administrators: {
     list: async (q?: any) =>
-      page(await api<any>(`/api/users${queryString({ ...q, role: "PLATFORM_ADMIN" })}`)),
+      page(
+        await api<any>(
+          `/api/users${queryString({ ...q, role: q?.role && q.role !== "ALL" ? q.role : "ORGANIZATION_ADMIN" })}`,
+        ),
+      ),
     getById: (id: string) => api<any>(`/api/users/${encoded(id)}`),
-    create: (input: any) => api<any>("/api/users", "POST", { ...input, role: "PLATFORM_ADMIN" }),
+    create: (input: any) =>
+      api<any>("/api/users", "POST", { ...input, role: input.role ?? "ORGANIZATION_ADMIN" }),
     update: (id: string, input: any) => api<any>(`/api/users/${encoded(id)}`, "PATCH", input),
     setStatus: (id: string, status: string) =>
       api<any>(`/api/users/${encoded(id)}/status`, "PATCH", { status }),
-    listPermissions: async () => [],
+    listPermissions: async () => api<any>("/api/platform/roles"),
   },
   classes: {
     list: async (q?: any) => page(await api<any>(`/api/classes${queryString(q)}`)),
@@ -124,9 +204,11 @@ export const services = {
     removeTeacher: async (id: string, teacherId: string) => {
       await api(`/api/sections/${encoded(id)}/teachers/${encoded(teacherId)}`, "DELETE");
     },
-    bulkAssignStudents: async () => {
-      throw new Error("CSV roster import is not implemented by the Backend API.");
-    },
+    bulkAssignStudents: (id: string, csvText: string, organizationId: string) =>
+      api<any>(`/api/sections/${encoded(id)}/students/bulk`, "POST", {
+        csvText,
+        organizationId,
+      }),
   },
   courses: {
     list: async (q?: any) => page(await api<any>(`/api/courses${queryString(q)}`)),
@@ -169,9 +251,7 @@ export const services = {
   reports: {
     list: () => api<any>("/api/reports"),
     getById: (id: string) => api<any>(`/api/reports/${encoded(id)}`),
-    getOnboardingSeries: async () => {
-      throw new Error("The Backend does not publish an onboarding series endpoint yet.");
-    },
+    getOnboardingSeries: () => api<any>("/api/reports/onboarding-series"),
   },
   dashboard: {
     getSummary: () => api<any>("/api/dashboard/summary"),

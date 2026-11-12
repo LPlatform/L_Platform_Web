@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE as API_BASE_URL } from "@/lib/api/base";
 import {
   Activity,
   ArrowUpRight,
@@ -86,7 +87,7 @@ export default function DashboardPage() {
 
   React.useEffect(() => {
     let active = true;
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+    const apiBase = API_BASE_URL;
     fetch(`${apiBase}/ready`, { credentials: "include" })
       .then(async (res) => {
         const payload = (await res.json().catch(() => ({}))) as { database?: string };

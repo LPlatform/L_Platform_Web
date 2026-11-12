@@ -7,7 +7,13 @@ import { UserForm } from "@/components/admin/user-form";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { UserRole } from "@/types";
 
-const VALID_ROLES: UserRole[] = ["ORGANIZATION_ADMIN", "TEACHER", "STUDENT"];
+const VALID_ROLES: UserRole[] = [
+  "PLATFORM_OWNER",
+  "PLATFORM_DEVELOPER",
+  "ORGANIZATION_ADMIN",
+  "TEACHER",
+  "STUDENT",
+];
 
 function NewUserForm() {
   const searchParams = useSearchParams();

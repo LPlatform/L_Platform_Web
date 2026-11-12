@@ -1,8 +1,24 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
 import { authService, clearSessionCookie, type MockSession } from "@/lib/api";
+
+const DEVELOPER_RESTRICTED_PREFIXES = [
+  "/admin/dashboard",
+  "/admin/organizations",
+  "/admin/users",
+  "/admin/students",
+  "/admin/teachers",
+  "/admin/classes",
+  "/admin/sections",
+  "/admin/allocations",
+  "/admin/invitations",
+  "/admin/assignments",
+  "/admin/reports",
+  "/admin/audit-logs",
+  "/admin/search",
+];
 
 interface SessionContextValue {
   session: MockSession;
@@ -17,18 +33,19 @@ function SessionLoading() {
       <div className="bg-primary text-primary-foreground flex size-12 items-center justify-center rounded-xl shadow-lg">
         <span className="text-lg font-bold">L</span>
       </div>
-      <p className="text-muted-foreground text-sm">Opening the admin workspace…</p>
+      <p className="text-muted-foreground text-sm">Opening the workspace…</p>
     </div>
   );
 }
 
 export function AdminSessionProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [session, setSession] = React.useState<MockSession | null | undefined>(undefined);
 
   React.useEffect(() => {
     const current = authService.getSession();
-    if (!current) {
+    if (!current || current.role === "STUDENT") {
       // The mock cookie can outlive localStorage (for example after clearing site data),
       // so remove it before returning to the login screen to avoid a redirect loop.
       clearSessionCookie();
@@ -37,8 +54,20 @@ export function AdminSessionProvider({ children }: { children: React.ReactNode }
       router.replace(`/login?next=${encodeURIComponent(next)}`);
       return;
     }
+    if (current.role === "TEACHER" && pathname.startsWith("/admin")) {
+      router.replace("/teacher/dashboard");
+      return;
+    }
+    if (
+      current.role === "PLATFORM_DEVELOPER" &&
+      (pathname.startsWith("/teacher") ||
+        DEVELOPER_RESTRICTED_PREFIXES.some((prefix) => pathname.startsWith(prefix)))
+    ) {
+      router.replace("/admin/courses");
+      return;
+    }
     setSession(current);
-  }, [router]);
+  }, [pathname, router]);
 
   const signOut = React.useCallback(async () => {
     await authService.logout();
@@ -54,6 +83,10 @@ export function AdminSessionProvider({ children }: { children: React.ReactNode }
   if (!value) return <SessionLoading />;
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
+}
+
+export function useOptionalSession(): SessionContextValue | undefined {
+  return React.useContext(SessionContext);
 }
 
 export function useSession(): SessionContextValue {

@@ -27,6 +27,7 @@ export const ERROR_CODES = {
   DUPLICATE_ALLOCATION: "DUPLICATE_ALLOCATION",
   MOCK_UNAVAILABLE: "MOCK_UNAVAILABLE",
   UNAUTHORIZED: "UNAUTHORIZED",
+  FORBIDDEN: "FORBIDDEN",
 } as const;
 
 export function isApiError(error: unknown): error is ApiError {
