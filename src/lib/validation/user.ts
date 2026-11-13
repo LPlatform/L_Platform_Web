@@ -5,43 +5,43 @@ const nameField = (label: string) =>
 
 const GLOBAL_ROLES = new Set(["PLATFORM_OWNER", "PLATFORM_DEVELOPER", "PLATFORM_ADMIN"]);
 
-export const userInputSchema = z
-  .object({
-    firstName: nameField("First name"),
-    lastName: nameField("Last name"),
-    email: z.string().trim().email("Enter a valid email address."),
-    role: z.enum([
-      "PLATFORM_OWNER",
-      "PLATFORM_DEVELOPER",
-      "PLATFORM_ADMIN",
-      "ORGANIZATION_ADMIN",
-      "TEACHER",
-      "STUDENT",
-    ]),
-    organizationId: z.string().nullable(),
-    status: z.enum(["ACTIVE", "INACTIVE"]),
-    username: z.string().trim().max(40).optional(),
-  })
-  .superRefine((value, context) => {
-    const isGlobal = GLOBAL_ROLES.has(value.role);
-    if (isGlobal && value.organizationId !== null && value.organizationId !== "") {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["organizationId"],
-        message: "Platform-level accounts do not belong to an organization.",
-      });
-    }
-    if (!isGlobal && !value.organizationId) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["organizationId"],
-        message: "Select the organization for this user.",
-      });
-    }
-  });
+// Base shape without refinements: zod 4 forbids .omit() on refined schemas.
+const userBaseSchema = z.object({
+  firstName: nameField("First name"),
+  lastName: nameField("Last name"),
+  email: z.string().trim().email("Enter a valid email address."),
+  role: z.enum([
+    "PLATFORM_OWNER",
+    "PLATFORM_DEVELOPER",
+    "PLATFORM_ADMIN",
+    "ORGANIZATION_ADMIN",
+    "TEACHER",
+    "STUDENT",
+  ]),
+  organizationId: z.string().nullable(),
+  status: z.enum(["ACTIVE", "INACTIVE"]),
+  username: z.string().trim().max(40).optional(),
+});
 
-export const userUpdateSchema = userInputSchema
-  .innerType()
+export const userInputSchema = userBaseSchema.superRefine((value, context) => {
+  const isGlobal = GLOBAL_ROLES.has(value.role);
+  if (isGlobal && value.organizationId !== null && value.organizationId !== "") {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["organizationId"],
+      message: "Platform-level accounts do not belong to an organization.",
+    });
+  }
+  if (!isGlobal && !value.organizationId) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["organizationId"],
+      message: "Select the organization for this user.",
+    });
+  }
+});
+
+export const userUpdateSchema = userBaseSchema
   .omit({ role: true })
   .superRefine((value, context) => {
     if (value.organizationId === "") {

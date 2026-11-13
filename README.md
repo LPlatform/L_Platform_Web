@@ -2,6 +2,10 @@
 
 One Next.js portal for **platform admins, organization admins and teachers** (students use the desktop app). Each role sees only its own area; every permission is enforced by the backend API and PostgreSQL row-level security — the web route guard is only for navigation.
 
+## Public landing page
+
+`/` is the public marketing page for students. **Download** opens an OS picker (Windows / macOS / Linux, pre-selected from the browser) and fetches `/api/downloads/latest/{platform}`, which the backend resolves from the desktop app's latest GitHub Release. No repository URL or token reaches the browser.
+
 ## What each role can do
 
 | Role                   | Area                             | Main features                                                                                                                                           |
