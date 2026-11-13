@@ -37,6 +37,10 @@ pnpm e2e   # Playwright; needs the backend running with seeded data
 
 Security headers (HSTS, frame-deny, nosniff, referrer and permissions policy) are set in `next.config.ts`.
 
+## Design
+
+Light-first professional theme (dark mode available): navy sidebar, green brand colour shared with the student app, flat cards, no gradients. Tokens live in `src/app/globals.css`.
+
 ## Stack
 
 Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS v4, TanStack Query/Table, Zod, Vitest, Playwright.

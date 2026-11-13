@@ -104,7 +104,7 @@ export default function TeacherAiReadinessLessonManagerPage() {
                     className={cn(
                       "flex w-full items-start gap-3 rounded-xl border px-3 py-2.5 text-left text-xs transition-all",
                       active
-                        ? "lp-gradient-bg border-transparent text-white shadow-md shadow-violet-950/30"
+                        ? "lp-gradient-bg border-transparent text-white"
                         : "border-border bg-secondary/40 text-foreground hover:border-primary/40",
                     )}
                   >

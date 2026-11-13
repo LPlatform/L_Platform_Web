@@ -359,7 +359,7 @@ export default function NewAssignmentPage() {
                   type="checkbox"
                   checked={allowFileUpload}
                   onChange={(e) => setAllowFileUpload(e.target.checked)}
-                  className="size-4 accent-violet-500"
+                  className="size-4 accent-[var(--primary)]"
                 />
                 Accept file attachments
               </label>
@@ -368,7 +368,7 @@ export default function NewAssignmentPage() {
                   type="checkbox"
                   checked={allowResubmit}
                   onChange={(e) => setAllowResubmit(e.target.checked)}
-                  className="size-4 accent-violet-500"
+                  className="size-4 accent-[var(--primary)]"
                 />
                 Allow resubmissions
               </label>
@@ -515,7 +515,7 @@ export default function NewAssignmentPage() {
                       type="checkbox"
                       checked={selected}
                       readOnly
-                      className="size-4 shrink-0 accent-violet-500"
+                      className="size-4 shrink-0 accent-[var(--primary)]"
                     />
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium">{q.title}</p>

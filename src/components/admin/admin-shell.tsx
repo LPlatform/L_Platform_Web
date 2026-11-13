@@ -15,17 +15,17 @@ function Brand({ collapsed = false }: { collapsed?: boolean }) {
     <Link
       href="/admin/dashboard"
       className={cn(
-        "focus-visible:ring-sidebar-primary/60 flex items-center gap-3 rounded-xl py-1 transition-opacity hover:opacity-95 focus-visible:ring-2 focus-visible:outline-none",
+        "focus-visible:ring-sidebar-primary/60 flex items-center gap-3 rounded-md py-1 transition-opacity hover:opacity-95 focus-visible:ring-2 focus-visible:outline-none",
         collapsed ? "justify-center px-0" : "px-1",
       )}
     >
-      <span className="lp-gradient-bg flex size-9 shrink-0 items-center justify-center rounded-xl text-sm font-bold tracking-tight text-white shadow-md shadow-violet-950/40">
+      <span className="bg-primary text-primary-foreground flex size-9 shrink-0 items-center justify-center rounded-md text-sm font-bold tracking-tight">
         LP
       </span>
       {!collapsed && (
         <span className="min-w-0">
           <span className="text-sidebar-foreground block truncate text-sm font-bold tracking-tight">
-            L_Platform
+            L Platform
           </span>
           <span className="text-sidebar-muted block text-[11px] font-medium">Admin Portal</span>
         </span>
@@ -64,11 +64,11 @@ function SidebarContent({
           onClick={onNavigate}
           title={collapsed ? `${session.name} (${ROLE_LABELS[session.role]})` : undefined}
           className={cn(
-            "border-sidebar-border bg-sidebar-accent/70 hover:bg-sidebar-accent flex items-center gap-3 rounded-xl border p-2.5 transition-colors",
+            "border-sidebar-border bg-sidebar-accent/70 hover:bg-sidebar-accent flex items-center gap-3 rounded-md border p-2.5 transition-colors",
             collapsed && "justify-center p-2",
           )}
         >
-          <span className="lp-gradient-bg flex size-8 shrink-0 items-center justify-center rounded-lg text-white">
+          <span className="bg-sidebar-primary text-sidebar-primary-foreground flex size-8 shrink-0 items-center justify-center rounded-md">
             <ShieldCheck className="size-4" aria-hidden />
           </span>
           {!collapsed && (
@@ -154,9 +154,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           {children}
         </main>
         <footer className="page-container pt-2 pb-6">
-          <p className="text-muted-foreground text-xs">
-            L_Platform · Multi-Tenant Educational Learning & Programming Platform
-          </p>
+          <p className="text-muted-foreground text-xs">L Platform · Admin console</p>
         </footer>
       </div>
     </div>

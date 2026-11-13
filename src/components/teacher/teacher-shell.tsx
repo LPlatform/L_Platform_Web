@@ -81,17 +81,17 @@ function TeacherBrand({ collapsed = false }: { collapsed?: boolean }) {
     <Link
       href="/teacher/dashboard"
       className={cn(
-        "flex items-center gap-3 rounded-xl py-1 transition-opacity hover:opacity-95",
+        "flex items-center gap-3 rounded-md py-1 transition-opacity hover:opacity-95",
         collapsed ? "justify-center px-0" : "px-1",
       )}
     >
-      <span className="lp-gradient-bg flex size-9 shrink-0 items-center justify-center rounded-xl text-sm font-bold tracking-tight text-white shadow-md shadow-violet-950/40">
+      <span className="bg-primary text-primary-foreground flex size-9 shrink-0 items-center justify-center rounded-md text-sm font-bold tracking-tight">
         LP
       </span>
       {!collapsed && (
         <span className="min-w-0">
           <span className="text-sidebar-foreground block truncate text-sm font-bold tracking-tight">
-            L_Platform
+            L Platform
           </span>
           <span className="text-sidebar-muted block text-[11px] font-medium">Teacher Portal</span>
         </span>
@@ -148,10 +148,10 @@ function TeacherSidebarContent({
                       title={collapsed ? item.label : undefined}
                       aria-current={active ? "page" : undefined}
                       className={cn(
-                        "group flex items-center gap-3 rounded-xl text-sm font-medium transition-all",
+                        "group relative flex items-center gap-3 rounded-md text-sm font-medium transition-all",
                         collapsed ? "justify-center px-2 py-2.5" : "px-3 py-2",
                         active
-                          ? "lp-gradient-bg text-white shadow-md shadow-violet-950/40"
+                          ? "bg-sidebar-accent before:bg-sidebar-primary text-white before:absolute before:inset-y-1.5 before:left-0 before:w-0.5 before:rounded-full"
                           : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground",
                       )}
                     >
@@ -159,7 +159,7 @@ function TeacherSidebarContent({
                         className={cn(
                           "size-4 shrink-0",
                           active
-                            ? "text-white"
+                            ? "text-sidebar-primary"
                             : "text-sidebar-muted group-hover:text-sidebar-foreground",
                         )}
                         aria-hidden
@@ -177,11 +177,11 @@ function TeacherSidebarContent({
       <div className="border-sidebar-border shrink-0 space-y-2 border-t p-3">
         <div
           className={cn(
-            "border-sidebar-border bg-sidebar-accent/70 flex items-center gap-2.5 rounded-xl border p-2.5",
+            "border-sidebar-border bg-sidebar-accent/70 flex items-center gap-2.5 rounded-md border p-2.5",
             collapsed && "justify-center p-2",
           )}
         >
-          <span className="lp-gradient-bg flex size-8 shrink-0 items-center justify-center rounded-lg text-white">
+          <span className="bg-sidebar-primary text-sidebar-primary-foreground flex size-8 shrink-0 items-center justify-center rounded-md">
             <GraduationCap className="size-4" aria-hidden />
           </span>
           {!collapsed && (
@@ -271,7 +271,7 @@ export function TeacherShell({ children }: { children: React.ReactNode }) {
 
   async function handleSignOut() {
     await signOut();
-    toast.success("Signed out of L_Platform.");
+    toast.success("Signed out.");
   }
 
   function handleSearch(e: React.FormEvent) {
@@ -405,7 +405,7 @@ export function TeacherShell({ children }: { children: React.ReactNode }) {
                 <DropdownMenuTrigger asChild>
                   <button
                     type="button"
-                    className="hover:bg-accent flex items-center gap-2 rounded-xl p-1 pr-2 text-left transition-colors"
+                    className="hover:bg-accent flex items-center gap-2 rounded-md p-1 pr-2 text-left transition-colors"
                     aria-label="Account menu"
                   >
                     <UserAvatar firstName={firstName} lastName={lastName || firstName} size="sm" />
@@ -444,9 +444,7 @@ export function TeacherShell({ children }: { children: React.ReactNode }) {
 
         <main className="page-container w-full flex-1 py-6 lg:py-8">{children}</main>
         <footer className="page-container pt-2 pb-6">
-          <p className="text-muted-foreground text-xs">
-            L_Platform · Teacher Instructional & Assessment Console
-          </p>
+          <p className="text-muted-foreground text-xs">L Platform · Teacher console</p>
         </footer>
       </div>
     </div>

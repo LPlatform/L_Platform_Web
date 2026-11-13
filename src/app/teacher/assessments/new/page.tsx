@@ -496,7 +496,7 @@ export default function NewAssessmentWizardPage() {
                           type="checkbox"
                           checked={active}
                           readOnly
-                          className="size-4 accent-violet-500"
+                          className="size-4 accent-[var(--primary)]"
                         />
                         <div>
                           <p className="text-sm font-medium">{q.title}</p>
@@ -598,7 +598,7 @@ export default function NewAssessmentWizardPage() {
                 type="checkbox"
                 checked={publishNow}
                 onChange={(e) => setPublishNow(e.target.checked)}
-                className="size-4 accent-violet-500"
+                className="size-4 accent-[var(--primary)]"
               />
               <Label htmlFor="publish-now">Publish assessment and assign to sections now</Label>
             </div>
