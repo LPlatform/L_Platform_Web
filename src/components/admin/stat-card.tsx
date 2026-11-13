@@ -4,12 +4,12 @@ import { cn } from "@/lib/utils";
 
 const TONES = {
   primary: {
-    icon: "bg-violet-500/15 text-violet-600 ring-1 ring-violet-500/25 dark:text-violet-300",
+    icon: "bg-emerald-500/15 text-emerald-600 ring-1 ring-emerald-500/25 dark:text-emerald-300",
     surface: "lp-kpi-violet",
     stroke: "#8b5cf6",
   },
   violet: {
-    icon: "bg-violet-500/15 text-violet-600 ring-1 ring-violet-500/25 dark:text-violet-300",
+    icon: "bg-emerald-500/15 text-emerald-600 ring-1 ring-emerald-500/25 dark:text-emerald-300",
     surface: "lp-kpi-violet",
     stroke: "#8b5cf6",
   },

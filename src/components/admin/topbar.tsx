@@ -69,7 +69,7 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
     setSigningOut(true);
     try {
       await signOut();
-      toast.success("Signed out of L_Platform.");
+      toast.success("Signed out.");
     } finally {
       setSigningOut(false);
     }
@@ -175,7 +175,7 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="hover:bg-accent focus-visible:ring-ring/40 flex items-center gap-2 rounded-xl p-1 pr-2 text-left transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                className="hover:bg-accent focus-visible:ring-ring/40 flex items-center gap-2 rounded-md p-1 pr-2 text-left transition-colors focus-visible:ring-2 focus-visible:outline-none"
                 aria-label="Account menu"
               >
                 <UserAvatar firstName={firstName} lastName={lastName || firstName} size="sm" />

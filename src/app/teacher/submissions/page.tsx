@@ -462,7 +462,7 @@ function TeacherSubmissionsContent() {
                         type="checkbox"
                         checked={releaseFeedback}
                         onChange={(e) => setReleaseFeedback(e.target.checked)}
-                        className="size-4 accent-violet-500"
+                        className="size-4 accent-[var(--primary)]"
                       />
                       Release score and feedback to student
                     </label>

@@ -154,10 +154,10 @@ export function SidebarNav({
                         title={collapsed ? item.label : undefined}
                         aria-current={active ? "page" : undefined}
                         className={cn(
-                          "group relative flex items-center gap-3 rounded-xl text-sm font-medium transition-all",
+                          "group relative flex items-center gap-3 rounded-md text-sm font-medium transition-all",
                           collapsed ? "justify-center px-2 py-2.5" : "px-3 py-2",
                           active
-                            ? "lp-gradient-bg text-white shadow-md shadow-violet-950/40"
+                            ? "bg-sidebar-accent before:bg-sidebar-primary text-white before:absolute before:inset-y-1.5 before:left-0 before:w-0.5 before:rounded-full"
                             : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground",
                         )}
                       >
@@ -165,7 +165,7 @@ export function SidebarNav({
                           className={cn(
                             "size-4 shrink-0 transition-colors",
                             active
-                              ? "text-white"
+                              ? "text-sidebar-primary"
                               : "text-sidebar-muted group-hover:text-sidebar-foreground",
                           )}
                           aria-hidden

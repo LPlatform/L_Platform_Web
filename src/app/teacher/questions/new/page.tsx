@@ -431,7 +431,7 @@ export default function NewQuestionPage() {
                     checked={opt.isCorrect}
                     onChange={() => toggleOptionCorrect(idx)}
                     aria-label={`Mark option ${idx + 1} as correct`}
-                    className="size-4 accent-violet-500"
+                    className="size-4 accent-[var(--primary)]"
                   />
                   <Input
                     placeholder={`Option ${String.fromCharCode(65 + idx)}`}
@@ -467,7 +467,7 @@ export default function NewQuestionPage() {
                   name="trueFalseValue"
                   checked={correctBoolean === true}
                   onChange={() => setCorrectBoolean(true)}
-                  className="size-4 accent-violet-500"
+                  className="size-4 accent-[var(--primary)]"
                 />
                 True
               </label>
@@ -477,7 +477,7 @@ export default function NewQuestionPage() {
                   name="trueFalseValue"
                   checked={correctBoolean === false}
                   onChange={() => setCorrectBoolean(false)}
-                  className="size-4 accent-violet-500"
+                  className="size-4 accent-[var(--primary)]"
                 />
                 False
               </label>

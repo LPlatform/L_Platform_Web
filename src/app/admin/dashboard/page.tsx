@@ -256,7 +256,7 @@ export default function DashboardPage() {
                   <div>
                     <div className="text-muted-foreground mb-3 flex flex-wrap items-center gap-5 text-xs">
                       <span className="inline-flex items-center gap-1.5">
-                        <span className="size-2.5 rounded-full bg-violet-500" aria-hidden />
+                        <span className="size-2.5 rounded-full bg-emerald-500" aria-hidden />
                         Students
                       </span>
                       <span className="inline-flex items-center gap-1.5">
