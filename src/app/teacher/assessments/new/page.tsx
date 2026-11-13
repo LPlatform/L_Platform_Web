@@ -1,6 +1,14 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, CheckCircle2, ClipboardCheck } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  ClipboardCheck,
+  Search,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
@@ -25,6 +33,7 @@ interface QuestionOption {
   questionType?: string;
   difficulty?: string;
   topic?: string;
+  courseModuleId?: string | null;
   marks?: number;
 }
 
@@ -66,25 +75,50 @@ export default function NewAssessmentWizardPage() {
   const [publishNow, setPublishNow] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
 
+  const [qSearch, setQSearch] = React.useState("");
+  const [qModuleFilter, setQModuleFilter] = React.useState("ALL");
+  const [qTypeFilter, setQTypeFilter] = React.useState("ALL");
+  const [qDifficultyFilter, setQDifficultyFilter] = React.useState("ALL");
+  const [qPage, setQPage] = React.useState(1);
+
   React.useEffect(() => {
-    Promise.all([
-      backendRequest<{ items: CourseOption[] }>("/api/learning/courses").catch(() => ({
-        items: [],
-      })),
-      backendRequest<{ items: QuestionOption[] }>("/api/questions?page=1&pageSize=100").catch(
-        () => ({ items: [] }),
-      ),
-      backendRequest<{ items: SectionOption[] }>("/api/learning/classes").catch(() => ({
-        items: [],
-      })),
-      backendRequest<{ modules?: Array<{ id: string; title: string }> }>(
-        "/api/learning/ai-readiness",
-      ).catch(() => ({ modules: [] })),
-    ]).then(([cRes, qRes, sRes, aiCourse]) => {
+    let active = true;
+    async function load() {
+      const [cRes, qFirst, sRes, aiCourse] = await Promise.all([
+        backendRequest<{ items: CourseOption[] }>("/api/learning/courses").catch(() => ({
+          items: [],
+        })),
+        backendRequest<{ items: QuestionOption[]; totalPages?: number }>(
+          "/api/questions?page=1&pageSize=500",
+        ).catch(() => ({ items: [], totalPages: 1 })),
+        backendRequest<{ items: SectionOption[] }>("/api/learning/classes").catch(() => ({
+          items: [],
+        })),
+        backendRequest<{ modules?: Array<{ id: string; title: string }> }>(
+          "/api/learning/ai-readiness",
+        ).catch(() => ({ modules: [] })),
+      ]);
+
+      let allQuestions = qFirst.items ?? [];
+      const totalPages = Math.max(1, qFirst.totalPages ?? 1);
+      if (totalPages > 1) {
+        const rest = await Promise.all(
+          Array.from({ length: totalPages - 1 }, (_, i) =>
+            backendRequest<{ items: QuestionOption[] }>(
+              `/api/questions?page=${i + 2}&pageSize=500`,
+            ).catch(() => ({ items: [] })),
+          ),
+        );
+        for (const res of rest) {
+          allQuestions = [...allQuestions, ...(res.items ?? [])];
+        }
+      }
+
+      if (!active) return;
       const cList = cRes.items ?? [];
       setCourses(cList);
       if (cList[0]) setCourseId(cList[0].id);
-      setQuestions(qRes.items ?? []);
+      setQuestions(allQuestions);
       setSections(sRes.items ?? []);
       if (sRes.items?.[0]) setSelectedSectionIds([sRes.items[0].id]);
       if (Array.isArray(aiCourse.modules) && aiCourse.modules.length > 0) {
@@ -95,7 +129,11 @@ export default function NewAssessmentWizardPage() {
         setModules(mapped);
         if (mapped[0]) setModuleId(mapped[0].id);
       }
-    });
+    }
+    void load();
+    return () => {
+      active = false;
+    };
   }, []);
 
   function toggleQuestion(id: string) {
@@ -114,6 +152,31 @@ export default function NewAssessmentWizardPage() {
     const q = questions.find((item) => item.id === id);
     return sum + (q?.marks ?? 10);
   }, 0);
+
+  const filteredQuestions = React.useMemo(() => {
+    const term = qSearch.trim().toLowerCase();
+    return questions.filter((q) => {
+      if (qDifficultyFilter !== "ALL" && q.difficulty !== qDifficultyFilter) return false;
+      if (qTypeFilter !== "ALL" && (q.questionType || "PROGRAMMING") !== qTypeFilter) return false;
+      if (qModuleFilter === "NONE" && q.courseModuleId) return false;
+      if (
+        qModuleFilter !== "ALL" &&
+        qModuleFilter !== "NONE" &&
+        q.courseModuleId !== qModuleFilter
+      ) {
+        return false;
+      }
+      if (!term) return true;
+      return q.title.toLowerCase().includes(term) || (q.topic ?? "").toLowerCase().includes(term);
+    });
+  }, [questions, qSearch, qModuleFilter, qTypeFilter, qDifficultyFilter]);
+
+  const qTotalPages = Math.max(1, Math.ceil(filteredQuestions.length / 25));
+  const safeQPage = Math.min(qPage, qTotalPages);
+  const paginatedQuestions = React.useMemo(
+    () => filteredQuestions.slice((safeQPage - 1) * 25, safeQPage * 25),
+    [filteredQuestions, safeQPage],
+  );
 
   async function handleSubmit() {
     if (!title.trim() || !courseId || !moduleId.trim() || selectedQuestionIds.length === 0) {
@@ -293,18 +356,128 @@ export default function NewAssessmentWizardPage() {
 
       {step === 2 && (
         <Card>
-          <CardHeader>
-            <CardTitle>Step 2: Select Questions ({selectedQuestionIds.length})</CardTitle>
-            <CardDescription>Total Score Blueprint: {totalMarks} marks</CardDescription>
+          <CardHeader className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <CardTitle>Step 2: Select Questions ({selectedQuestionIds.length})</CardTitle>
+                <CardDescription>
+                  Total Score Blueprint: {totalMarks} marks · {questions.length} bank questions
+                  loaded
+                </CardDescription>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {moduleId && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setQModuleFilter(moduleId);
+                      setQPage(1);
+                    }}
+                  >
+                    Filter to Target Module
+                  </Button>
+                )}
+                {qModuleFilter !== "ALL" && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      setQModuleFilter("ALL");
+                      setQPage(1);
+                    }}
+                  >
+                    Show All Modules
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="relative">
+                <Search
+                  className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2"
+                  aria-hidden
+                />
+                <Input
+                  placeholder="Search questions..."
+                  value={qSearch}
+                  onChange={(e) => {
+                    setQSearch(e.target.value);
+                    setQPage(1);
+                  }}
+                  className="bg-card pl-8"
+                />
+              </div>
+
+              <NativeSelect
+                aria-label="Filter by module"
+                value={qModuleFilter}
+                onChange={(e) => {
+                  setQModuleFilter(e.target.value);
+                  setQPage(1);
+                }}
+              >
+                <option value="ALL">All modules</option>
+                <option value="NONE">Standalone / Programming</option>
+                {modules.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.label}
+                  </option>
+                ))}
+              </NativeSelect>
+
+              <NativeSelect
+                aria-label="Filter by question type"
+                value={qTypeFilter}
+                onChange={(e) => {
+                  setQTypeFilter(e.target.value);
+                  setQPage(1);
+                }}
+              >
+                <option value="ALL">All types</option>
+                {[
+                  "PROGRAMMING",
+                  "CODE",
+                  "SINGLE_MCQ",
+                  "MULTI_SELECT",
+                  "TRUE_FALSE",
+                  "FILL_BLANK",
+                  "SHORT_ANSWER",
+                  "LONG_CASE",
+                  "PRACTICAL",
+                ].map((t) => (
+                  <option key={t} value={t}>
+                    {t.replaceAll("_", " ")}
+                  </option>
+                ))}
+              </NativeSelect>
+
+              <NativeSelect
+                aria-label="Filter by difficulty"
+                value={qDifficultyFilter}
+                onChange={(e) => {
+                  setQDifficultyFilter(e.target.value);
+                  setQPage(1);
+                }}
+              >
+                <option value="ALL">All difficulties</option>
+                <option value="EASY">Easy</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="HARD">Hard</option>
+              </NativeSelect>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {questions.length === 0 ? (
+            {filteredQuestions.length === 0 ? (
               <p className="text-muted-foreground text-sm">
-                No questions found in the Question Bank.
+                No questions found matching your filters.
               </p>
             ) : (
               <div className="space-y-2.5">
-                {questions.map((q) => {
+                {paginatedQuestions.map((q) => {
                   const active = selectedQuestionIds.includes(q.id);
                   return (
                     <button
@@ -337,6 +510,37 @@ export default function NewAssessmentWizardPage() {
                     </button>
                   );
                 })}
+              </div>
+            )}
+
+            {qTotalPages > 1 && (
+              <div className="flex items-center justify-between border-t pt-3">
+                <span className="text-muted-foreground text-xs">
+                  Showing {paginatedQuestions.length} of {filteredQuestions.length} · Page{" "}
+                  {safeQPage} / {qTotalPages}
+                </span>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={safeQPage <= 1}
+                    onClick={() => setQPage((p) => Math.max(1, p - 1))}
+                  >
+                    <ChevronLeft className="size-4" />
+                    Prev
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={safeQPage >= qTotalPages}
+                    onClick={() => setQPage((p) => Math.min(qTotalPages, p + 1))}
+                  >
+                    Next
+                    <ChevronRight className="size-4" />
+                  </Button>
+                </div>
               </div>
             )}
 

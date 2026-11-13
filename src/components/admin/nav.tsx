@@ -23,6 +23,7 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as React from "react";
+import { useOptionalSession } from "@/components/admin/session-provider";
 import { cn } from "@/lib/utils";
 
 export interface NavItem {
@@ -81,6 +82,12 @@ export function isNavActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+const DEVELOPER_ALLOWED_HREFS = new Set([
+  "/admin/courses",
+  "/admin/assessments",
+  "/admin/settings",
+]);
+
 export function SidebarNav({
   onNavigate,
   collapsed = false,
@@ -89,14 +96,24 @@ export function SidebarNav({
   collapsed?: boolean;
 }) {
   const pathname = usePathname();
+  const sessionCtx = useOptionalSession();
+  const role = sessionCtx?.session.role;
   const [usersOpen, setUsersOpen] = React.useState(true);
+
+  const visibleGroups = React.useMemo(() => {
+    if (role !== "PLATFORM_DEVELOPER") return NAV_GROUPS;
+    return NAV_GROUPS.map((group) => ({
+      ...group,
+      items: group.items.filter((item) => DEVELOPER_ALLOWED_HREFS.has(item.href)),
+    })).filter((group) => group.items.length > 0);
+  }, [role]);
 
   return (
     <nav
       aria-label="Admin navigation"
       className="flex-1 scrollbar-thin space-y-5 overflow-y-auto px-3 py-4"
     >
-      {NAV_GROUPS.map((group) => {
+      {visibleGroups.map((group) => {
         const isCollapsedGroup = group.collapsible && !usersOpen && !collapsed;
 
         return (

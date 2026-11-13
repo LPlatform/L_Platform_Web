@@ -194,17 +194,19 @@ describe("userInputSchema", () => {
     expect(userInputSchema.safeParse({ ...base, organizationId: null }).success).toBe(false);
   });
 
-  it("forbids organizations for platform administrators", () => {
-    expect(
-      userInputSchema.safeParse({
-        ...base,
-        role: "PLATFORM_ADMIN",
-        organizationId: "org-1",
-      }).success,
-    ).toBe(false);
-    expect(
-      userInputSchema.safeParse({ ...base, role: "PLATFORM_ADMIN", organizationId: null }).success,
-    ).toBe(true);
+  it("forbids organizations for platform-level roles", () => {
+    for (const globalRole of ["PLATFORM_OWNER", "PLATFORM_DEVELOPER", "PLATFORM_ADMIN"] as const) {
+      expect(
+        userInputSchema.safeParse({
+          ...base,
+          role: globalRole,
+          organizationId: "org-1",
+        }).success,
+      ).toBe(false);
+      expect(
+        userInputSchema.safeParse({ ...base, role: globalRole, organizationId: null }).success,
+      ).toBe(true);
+    }
   });
 });
 

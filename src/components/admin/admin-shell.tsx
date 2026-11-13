@@ -77,7 +77,11 @@ function SidebarContent({
                 {ROLE_LABELS[session.role]}
               </span>
               <span className="text-sidebar-muted block truncate text-[11px]">
-                {session.role === "PLATFORM_ADMIN" ? "Global administration" : session.email}
+                {session.role === "PLATFORM_OWNER" ||
+                session.role === "PLATFORM_DEVELOPER" ||
+                session.role === "PLATFORM_ADMIN"
+                  ? "Global administration"
+                  : session.email}
               </span>
             </span>
           )}
