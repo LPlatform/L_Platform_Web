@@ -1,5 +1,7 @@
 "use client";
 
+import { z } from "zod";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, RotateCcw, Save } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -123,7 +125,7 @@ function SettingsForm({ settings }: { settings: PlatformSettings }) {
     reset,
     setError,
     formState: { errors, isSubmitting },
-  } = useForm<SettingsFormValues>({
+  } = useForm<z.input<typeof settingsSchema>, unknown, SettingsFormValues>({
     resolver: zodResolver(settingsSchema),
     defaultValues: settings,
   });

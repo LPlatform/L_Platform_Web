@@ -16,6 +16,8 @@ const config = [
       "playwright-report/**",
       "test-results/**",
       "next-env.d.ts",
+      // Backend checkout used only by the CI end-to-end job.
+      "backend/**",
     ],
   },
   ...compat.extends("next/core-web-vitals", "next/typescript"),

@@ -63,11 +63,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(homeForRole(role), request.url));
   }
 
-  if (pathname === "/") {
-    return NextResponse.redirect(
-      new URL(hasSession && role !== "STUDENT" ? homeForRole(role) : "/login", request.url),
-    );
-  }
+  // "/" is the public marketing and download page.
 
   return NextResponse.next();
 }
